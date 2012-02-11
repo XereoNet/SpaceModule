@@ -80,7 +80,7 @@ public class VersionsManager {
                 database.setProperty(PROJECT_NAME + ".Build" + buildNumber, md5);
             }
             Console.progress("Checking for updates",
-                    (int) Math.round(((double) buildNumber + 3) / (DEVELOPMENT - lastChecked + 3D) * 100D));
+                    (int) Math.round((buildNumber - lastChecked + 3D) / (DEVELOPMENT - lastChecked + 3D) * 100D));
         }
         Console.newLine();
         database.setProperty(PROJECT_NAME + ".LastChecked", DEVELOPMENT);
