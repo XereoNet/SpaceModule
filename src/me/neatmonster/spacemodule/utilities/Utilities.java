@@ -14,6 +14,7 @@
  */
 package me.neatmonster.spacemodule.utilities;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,19 +22,26 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 
 public class Utilities {
 
-    public static boolean downloadFile(final String urlString, final File file) {
+    public static boolean downloadFile(final String urlString, final File file, final String text) {
+        Console.progress(text, 0);
         try {
             final URL url = new URL(urlString);
-            final ReadableByteChannel input = Channels.newChannel(url.openStream());
+            final int contentLength = url.openConnection().getContentLength();
+            final BufferedInputStream input = new BufferedInputStream(url.openStream());
             final FileOutputStream output = new FileOutputStream(file);
-            output.getChannel().transferFrom(input, 0, 1 << 24);
+            final byte data[] = new byte[1024];
+            int count, downloadedBytes = 0;
+            while ((count = input.read(data, 0, 1024)) != -1) {
+                downloadedBytes += count;
+                Console.progress(text, (int) Math.round((double) downloadedBytes / (double) contentLength * 100D));
+                output.write(data, 0, count);
+            }
+            Console.newLine();
             return true;
         } catch (final Exception e) {
             e.printStackTrace();

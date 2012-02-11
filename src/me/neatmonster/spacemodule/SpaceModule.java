@@ -24,6 +24,7 @@ import java.util.TimerTask;
 
 import me.neatmonster.spacemodule.management.ImprovedClassLoader;
 import me.neatmonster.spacemodule.management.VersionsManager;
+import me.neatmonster.spacemodule.utilities.Console;
 import me.neatmonster.spacemodule.utilities.Utilities;
 
 import org.bukkit.util.config.Configuration;
@@ -67,27 +68,20 @@ public class SpaceModule extends Module {
         File artifact = null;
         if (type.equals("Bukkit"))
             artifact = new File("plugins", versionsManager.ARTIFACT_NAME);
-        if (!artifact.exists()) {
-            System.out.print("Done.\nInstalling Space" + type + " #"
-                    + (recommended ? versionsManager.RECOMMENDED : versionsManager.DEVELOPMENT) + "...");
+        if (!artifact.exists())
             update(versionsManager, artifact, firstTime);
-        } else
+        else
             try {
                 final String md5 = Utilities.getMD5(artifact);
                 final int buildNumber = versionsManager.match(md5);
                 if (recommended && buildNumber != versionsManager.RECOMMENDED || development
-                        && buildNumber != versionsManager.DEVELOPMENT) {
-                    System.out.print("Done.\nUpdating Space" + type + " #" + buildNumber + " to #"
-                            + (recommended ? versionsManager.RECOMMENDED : versionsManager.DEVELOPMENT) + "...");
+                        && buildNumber != versionsManager.DEVELOPMENT)
                     update(versionsManager, artifact, firstTime);
-                } else
-                    System.out.print("Done.\n");
             } catch (final Exception e) {
                 e.printStackTrace();
             }
-        System.out.print("Loading Space" + type + " #"
-                + (recommended ? versionsManager.RECOMMENDED : versionsManager.DEVELOPMENT) + "...Done.\n");
-        load(artifact);
+        Console.timedProgress("Starting SpaceBukkit", 0, 100, 500L);
+        Console.newLine();
     }
 
     private void load(final File jar) {
@@ -124,6 +118,7 @@ public class SpaceModule extends Module {
 
     @Override
     public void onEnable() {
+        Console.header("SpaceModule v0.1");
         if (!MAIN_DIRECTORY.exists())
             MAIN_DIRECTORY.mkdir();
         if (!CONFIGURATION.exists())
@@ -134,23 +129,25 @@ public class SpaceModule extends Module {
             }
         loadConfiguration();
         if (recommended || development) {
-            System.out.print("Checking for updates...");
             versionsManager = new VersionsManager("Space" + type);
             versionsManager.setup();
             execute(versionsManager, true);
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    System.out.print("Checking for updates...");
+                    Console.header("SpaceModule v0.1");
                     versionsManager.setup();
                     execute(versionsManager, false);
+                    Console.footer();
                 }
             }, 21600000L, 21600000L);
         } else {
             final File artifact = new File(artifactPath);
-            System.out.print("Loading Space" + type + "...Done.\n");
             load(artifact);
+            Console.timedProgress("Starting SpaceBukkit", 0, 100, 500L);
+            Console.newLine();
         }
+        Console.footer();
     }
 
     private void unload() {
@@ -188,8 +185,7 @@ public class SpaceModule extends Module {
             unload();
         if (artifact.exists())
             artifact.delete();
-        Utilities.downloadFile(url, artifact);
-        System.out.print("Done.\n");
+        Utilities.downloadFile(url, artifact, "Updating SpaceBukkit");
         if (!firstTime && wasRunning)
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
     }

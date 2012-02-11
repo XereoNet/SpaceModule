@@ -17,6 +17,7 @@ package me.neatmonster.spacemodule.management;
 import java.util.LinkedHashMap;
 
 import me.neatmonster.spacemodule.SpaceModule;
+import me.neatmonster.spacemodule.utilities.Console;
 import me.neatmonster.spacemodule.utilities.Utilities;
 
 import org.bukkit.util.config.Configuration;
@@ -46,20 +47,24 @@ public class VersionsManager {
     }
 
     public void setup() {
+        Console.progress("Checking for updates", 0);
+        final Configuration database = new Configuration(SpaceModule.DATABASE);
+        database.load();
+        final int lastChecked = database.getInt(PROJECT_NAME + ".LastChecked", 0);
+        final String developmentPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME
+                + "/lastSuccessfulBuild/buildNumber/");
+        DEVELOPMENT = Integer.parseInt(developmentPage);
+        Console.progress("Checking for updates", (int) Math.round(1D / (DEVELOPMENT - lastChecked + 3D) * 100D));
+        final String recommendedPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME
+                + "/Recommended/buildNumber/");
+        RECOMMENDED = Integer.parseInt(recommendedPage);
+        Console.progress("Checking for updates", (int) Math.round(2D / (DEVELOPMENT - lastChecked + 3D) * 100D));
         final String artifactPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME + "/"
                 + (SpaceModule.getInstance().recommended ? "Recommended" : "lastSuccessfulBuild") + "/");
         int beginIndex = artifactPage.indexOf(PROJECT_NAME.toLowerCase());
         final int endIndex = artifactPage.substring(beginIndex).indexOf(".jar") + beginIndex + 4;
         ARTIFACT_NAME = artifactPage.substring(beginIndex, endIndex);
-        final String developmentPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME
-                + "/lastSuccessfulBuild/buildNumber/");
-        DEVELOPMENT = Integer.parseInt(developmentPage);
-        final String recommendedPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME
-                + "/Recommended/buildNumber/");
-        RECOMMENDED = Integer.parseInt(recommendedPage);
-        final Configuration database = new Configuration(SpaceModule.DATABASE);
-        database.load();
-        final int lastChecked = database.getInt(PROJECT_NAME + ".LastChecked", 0);
+        Console.progress("Checking for updates", (int) Math.round(3D / (DEVELOPMENT - lastChecked + 3D) * 100D));
         if (lastChecked > 0)
             for (int buildNumber = 1; buildNumber < lastChecked + 1; buildNumber++) {
                 final String md5 = database.getString(PROJECT_NAME + ".Build" + buildNumber, null);
@@ -74,7 +79,10 @@ public class VersionsManager {
                 builds.put(buildNumber, md5);
                 database.setProperty(PROJECT_NAME + ".Build" + buildNumber, md5);
             }
+            Console.progress("Checking for updates",
+                    (int) Math.round(((double) buildNumber + 3) / (DEVELOPMENT - lastChecked + 3D) * 100D));
         }
+        Console.newLine();
         database.setProperty(PROJECT_NAME + ".LastChecked", DEVELOPMENT);
         database.save();
     }
