@@ -141,6 +141,8 @@ public class SpaceModule extends Module {
                     Console.footer();
                 }
             }, 21600000L, 21600000L);
+            final File artifact = new File("plugins" + File.separator + versionsManager.ARTIFACT_NAME);
+            load(artifact);
         } else {
             final File artifact = new File(artifactPath);
             load(artifact);
