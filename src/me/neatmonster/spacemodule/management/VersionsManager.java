@@ -54,17 +54,24 @@ public class VersionsManager {
         final String developmentPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME
                 + "/lastSuccessfulBuild/buildNumber/");
         DEVELOPMENT = Integer.parseInt(developmentPage);
-        Console.progress("Checking for updates", (int) Math.round(1D / (DEVELOPMENT - lastChecked + 3D) * 100D));
+        Console.progress("Checking for updates",
+                (int) Math.round(1D / (DEVELOPMENT - lastChecked + (lastChecked == DEVELOPMENT ? 2D : 3D)) * 100D));
         final String recommendedPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME
                 + "/Recommended/buildNumber/");
         RECOMMENDED = Integer.parseInt(recommendedPage);
-        Console.progress("Checking for updates", (int) Math.round(2D / (DEVELOPMENT - lastChecked + 3D) * 100D));
-        final String artifactPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME + "/"
-                + (SpaceModule.getInstance().recommended ? "Recommended" : "lastSuccessfulBuild") + "/");
-        int beginIndex = artifactPage.indexOf(PROJECT_NAME.toLowerCase());
-        final int endIndex = artifactPage.substring(beginIndex).indexOf(".jar") + beginIndex + 4;
-        ARTIFACT_NAME = artifactPage.substring(beginIndex, endIndex);
-        Console.progress("Checking for updates", (int) Math.round(3D / (DEVELOPMENT - lastChecked + 3D) * 100D));
+        Console.progress("Checking for updates",
+                (int) Math.round(2D / (DEVELOPMENT - lastChecked + (lastChecked == DEVELOPMENT ? 2D : 3D)) * 100D));
+        if (lastChecked == DEVELOPMENT)
+            ARTIFACT_NAME = database.getString(PROJECT_NAME + ".ArtifactName");
+        else {
+            final String artifactPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME
+                    + "/" + (SpaceModule.getInstance().recommended ? "Recommended" : "lastSuccessfulBuild") + "/");
+            final int beginIndex = artifactPage.indexOf(PROJECT_NAME.toLowerCase());
+            final int endIndex = artifactPage.substring(beginIndex).indexOf(".jar") + beginIndex + 4;
+            ARTIFACT_NAME = artifactPage.substring(beginIndex, endIndex);
+            database.setProperty(PROJECT_NAME + ".ArtifactName", ARTIFACT_NAME);
+            Console.progress("Checking for updates", (int) Math.round(3D / (DEVELOPMENT - lastChecked + 3D) * 100D));
+        }
         if (lastChecked > 0)
             for (int buildNumber = 1; buildNumber < lastChecked + 1; buildNumber++) {
                 final String md5 = database.getString(PROJECT_NAME + ".Build" + buildNumber, null);
@@ -74,13 +81,15 @@ public class VersionsManager {
             final String buildPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME + "/"
                     + buildNumber + "/artifact/target/" + ARTIFACT_NAME + "/*fingerprint*/");
             if (buildPage != null) {
-                beginIndex = buildPage.indexOf("<div class=\"md5sum\">MD5: ") + 25;
+                final int beginIndex = buildPage.indexOf("<div class=\"md5sum\">MD5: ") + 25;
                 final String md5 = buildPage.substring(beginIndex, beginIndex + 32);
                 builds.put(buildNumber, md5);
                 database.setProperty(PROJECT_NAME + ".Build" + buildNumber, md5);
             }
-            Console.progress("Checking for updates",
-                    (int) Math.round((buildNumber - lastChecked + 3D) / (DEVELOPMENT - lastChecked + 3D) * 100D));
+            Console.progress(
+                    "Checking for updates",
+                    (int) Math.round((buildNumber - lastChecked + (lastChecked == DEVELOPMENT ? 2D : 3D))
+                            / (DEVELOPMENT - lastChecked + (lastChecked == DEVELOPMENT ? 2D : 3D)) * 100D));
         }
         Console.newLine();
         database.setProperty(PROJECT_NAME + ".LastChecked", DEVELOPMENT);
