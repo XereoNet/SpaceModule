@@ -84,6 +84,43 @@ public class SpaceModule extends Module {
         Console.newLine();
     }
 
+    public String getModuleVersion() {
+        try {
+            if (versionsManager == null) {
+                versionsManager = new VersionsManager("Space" + type);
+                versionsManager.setup();
+            }
+            File artifact;
+            if (development || recommended)
+                artifact = new File("plugins" + File.separator + versionsManager.ARTIFACT_NAME);
+            else
+                artifact = new File(artifactPath);
+            if (versionsManager.match(Utilities.getMD5(artifact)) != 0)
+                return "#" + versionsManager.match(Utilities.getMD5(artifact));
+            else
+                return "#?";
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+        return "<unknown>";
+    }
+
+    public String getVersion() {
+        try {
+            final VersionsManager spaceModuleVersionsManager = new VersionsManager("SpaceModule");
+            spaceModuleVersionsManager.setup();
+            final File artifact = new File("toolkit" + File.separator + "modules",
+                    spaceModuleVersionsManager.ARTIFACT_NAME);
+            if (spaceModuleVersionsManager.match(Utilities.getMD5(artifact)) != 0)
+                return "#" + spaceModuleVersionsManager.match(Utilities.getMD5(artifact));
+            else
+                return "#?";
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+        return "<unknown>";
+    }
+
     private void load(final File jar) {
         try {
             final URL url = new URL("file:" + jar.getAbsolutePath());
