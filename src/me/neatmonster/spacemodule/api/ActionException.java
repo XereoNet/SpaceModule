@@ -1,29 +1,32 @@
 /*
  * This file is part of SpaceModule (http://spacebukkit.xereo.net/).
- *
+ * 
  * SpaceModule is free software: you can redistribute it and/or modify it under the terms of the
  * Attribution-NonCommercial-ShareAlike Unported (CC BY-NC-SA) license as published by the Creative
  * Common organization, either version 3.0 of the license, or (at your option) any later version.
- *
- * SpaceBukkit is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * 
+ * SpaceBukkit is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without 
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
  * Attribution-NonCommercial-ShareAlike Unported (CC BY-NC-SA) license for more details.
- *
+ * 
  * You should have received a copy of the Attribution-NonCommercial-ShareAlike Unported (CC BY-NC-SA)
  * license along with this program. If not, see <http://creativecommons.org/licenses/by-nc-sa/3.0/>.
  */
-package net.xereo.spacemodule.api;
+package me.neatmonster.spacemodule.api;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public class ActionException extends Exception {
 
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Action {
+    private static final long serialVersionUID = 5467945798187403789L;
 
-    String[] aliases();
+    public ActionException() {
+        super();
+    }
 
-    boolean schedulable() default true;
+    public ActionException(final String message) {
+        super(message);
+    }
+
+    public ActionException(final Throwable throwable) {
+        super(throwable);
+    }
 }
