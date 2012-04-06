@@ -1,2 +1,2 @@
 name:SpaceModule
-main:me.neatmonster.spacemodule.SpaceModule
+main:net.xereo.spacemodule.SpaceModule
