@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- Project information -->
-    <groupId>me.neatmonster</groupId>
+    <groupId>net.xereo</groupId>
     <artifactId>spacemodule</artifactId>
     <version>0.1-SNAPSHOT</version>
     <name>SpaceModule</name>
