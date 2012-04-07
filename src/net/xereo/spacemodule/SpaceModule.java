@@ -125,7 +125,7 @@ public class SpaceModule extends Module {
         try {
             final URL url = new URL("file:" + jar.getAbsolutePath());
             classLoader = new ImprovedClassLoader(new URL[] {url}, getClass().getClassLoader());
-            final Class<?> loadedClass = classLoader.loadClass("me.neatmonster.spacertk.SpaceRTK");
+            final Class<?> loadedClass = classLoader.loadClass("net.xereo.spacertk.SpaceRTK");
             spaceRTK = loadedClass.getConstructor().newInstance();
             final Method onEnable = loadedClass.getMethod("onEnable");
             onEnable.invoke(spaceRTK);
