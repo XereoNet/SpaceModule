@@ -124,6 +124,7 @@ public class SpaceModule extends Module {
     private void load(final File jar) {
         try {
             final URL url = new URL("file:" + jar.getAbsolutePath());
+            System.out.println(url);
             classLoader = new ImprovedClassLoader(new URL[] {url}, getClass().getClassLoader());
             final Class<?> loadedClass = classLoader.loadClass("net.xereo.spacertk.SpaceRTK");
             spaceRTK = loadedClass.getConstructor().newInstance();
@@ -137,6 +138,11 @@ public class SpaceModule extends Module {
     private void loadConfiguration() {
         final Configuration configuration = new Configuration(CONFIGURATION);
         configuration.load();
+        configuration.setHeader(
+                "#                !!!ATTENTION!!!                #",
+                "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #",
+                "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #");
+
         type = configuration.getString("SpaceModule.Type", "Bukkit");
         configuration.setProperty("SpaceModule.Type", type = "Bukkit");
         recommended = configuration.getBoolean("SpaceModule.Recommended", true);
