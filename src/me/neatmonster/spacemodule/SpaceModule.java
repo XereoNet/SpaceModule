@@ -22,6 +22,8 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.drdanick.rtoolkit.EventDispatcher;
+import com.drdanick.rtoolkit.event.ToolkitEventHandler;
 import me.neatmonster.spacemodule.management.ImprovedClassLoader;
 import me.neatmonster.spacemodule.management.VersionsManager;
 import me.neatmonster.spacemodule.utilities.Console;
@@ -48,15 +50,18 @@ public class SpaceModule extends Module {
         return instance;
     }
 
-    public String              type            = null;
-    public boolean             development     = false;
-    public boolean             recommended     = false;
-    public String              artifactPath    = null;
+    public String               type            = null;
+    public boolean              development     = false;
+    public boolean              recommended     = false;
+    public String               artifactPath    = null;
 
-    public Timer               timer           = new Timer();
-    public Object              spaceRTK        = null;
-    public ImprovedClassLoader classLoader     = null;
-    public VersionsManager     versionsManager = null;
+    public Timer                timer           = new Timer();
+    public Object               spaceRTK        = null;
+    public ImprovedClassLoader  classLoader     = null;
+    public VersionsManager      versionsManager = null;
+
+    private EventDispatcher     edt;
+    private ToolkitEventHandler eventHandler;
 
     public SpaceModule(final ModuleMetadata meta, final ModuleLoader moduleLoader, final ClassLoader cLoader) {
         super(meta, moduleLoader, cLoader, ToolkitEvent.ON_TOOLKIT_START, ToolkitEvent.NULL_EVENT);
@@ -121,6 +126,14 @@ public class SpaceModule extends Module {
         return "<unknown>";
     }
 
+    public EventDispatcher getEdt() {
+        return edt;
+    }
+
+    public ToolkitEventHandler getEventHandler() {
+        return eventHandler;
+    }
+
     private void load(final File jar) {
         try {
             final URL url = new URL("file:" + jar.getAbsolutePath());
@@ -156,6 +169,9 @@ public class SpaceModule extends Module {
     @Override
     public void onDisable() {
         unload();
+        edt.setRunning(false);
+        edt.notifyAll();
+        eventHandler.setEnabled(false);
         instance = null;
     }
 
@@ -192,6 +208,32 @@ public class SpaceModule extends Module {
             Console.timedProgress("Starting SpaceBukkit", 0, 100, 500L);
             Console.newLine();
         }
+
+        if(edt == null)
+            edt = new EventDispatcher();
+
+        if(!edt.isRunning()) {
+            edt.notifyAll();
+            edt.setRunning(true);
+            Thread edtThread = new Thread(edt, "SpaceModule EventDispatcher");
+            edtThread.setDaemon(true);
+            edtThread.start();
+        }
+
+        if(eventHandler != null) {
+            eventHandler.setEnabled(true);
+            if(!eventHandler.isRunning()) {
+                Thread handlerThread = new Thread(eventHandler, "SpaceModule EventHandler");
+                handlerThread.setDaemon(true);
+                handlerThread.start();
+            }
+        } else {
+            eventHandler = new EventHandler();
+            Thread handlerThread = new Thread(eventHandler, "SpaceModule EventHandler");
+            handlerThread.setDaemon(true);
+            handlerThread.start();
+        }
+
         Console.footer();
     }
 
@@ -233,5 +275,13 @@ public class SpaceModule extends Module {
         Utilities.downloadFile(url, artifact, "Updating SpaceBukkit");
         if (!firstTime && wasRunning)
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
+    }
+
+    private class EventHandler extends ToolkitEventHandler {
+
+        public EventHandler() {
+            setEnabled(true);
+        }
+
     }
 }
