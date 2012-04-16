@@ -127,7 +127,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.5</version>
+                <version>1.6</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -136,6 +136,23 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>com.drdanick.rtoolkit:remotetoolkit</artifact>
+                            <includes>
+                                <include>com/drdanick/rtoolkit/**</include>
+                            </includes>
+
+                            <excludes>
+                                <exclude>config/**</exclude>
+                                <exclude>internal/**</exclude>
+                                <exclude>org/yaml/snakeyaml/**</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <minimizeJar>true</minimizeJar>
+                </configuration>
             </plugin>
         </plugins>
     </build>
