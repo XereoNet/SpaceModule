@@ -143,12 +143,6 @@
                             <includes>
                                 <include>com/drdanick/rtoolkit/**</include>
                             </includes>
-
-                            <excludes>
-                                <exclude>config/**</exclude>
-                                <exclude>internal/**</exclude>
-                                <exclude>org/yaml/snakeyaml/**</exclude>
-                            </excludes>
                         </filter>
                     </filters>
                     <minimizeJar>true</minimizeJar>
