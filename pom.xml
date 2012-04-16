@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- Project information -->
-    <groupId>net.xereo</groupId>
+    <groupId>me.neatmonster</groupId>
     <artifactId>spacemodule</artifactId>
     <version>0.1-SNAPSHOT</version>
     <name>SpaceModule</name>
@@ -42,8 +42,8 @@
 
         <!-- RemoteToolkit Repository -->
         <repository>
-            <id>rtk-snapshots</id>
-            <name>RTK Snapshots</name>
+            <id>rtoolkit-snapshots</id>
+            <name>RemoteToolkit</name>
             <url>http://dev.drdanick.com/repo/content/repositories/rtk-snapshots</url>
         </repository>
 
@@ -75,6 +75,7 @@
             <groupId>com.drdanick.rtoolkit</groupId>
             <artifactId>remotetoolkit</artifactId>
             <version>R11-SNAPSHOT</version>
+            <type>jar</type>
             <scope>compile</scope>
         </dependency>
 
@@ -135,9 +136,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <minimizeJar>true</minimizeJar>
-                </configuration>
             </plugin>
         </plugins>
     </build>

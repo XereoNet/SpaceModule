@@ -12,7 +12,7 @@
  * You should have received a copy of the Attribution-NonCommercial-ShareAlike Unported (CC BY-NC-SA)
  * license along with this program. If not, see <http://creativecommons.org/licenses/by-nc-sa/3.0/>.
  */
-package net.xereo.spacemodule;
+package me.neatmonster.spacemodule;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,10 +22,10 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import net.xereo.spacemodule.management.ImprovedClassLoader;
-import net.xereo.spacemodule.management.VersionsManager;
-import net.xereo.spacemodule.utilities.Console;
-import net.xereo.spacemodule.utilities.Utilities;
+import me.neatmonster.spacemodule.management.ImprovedClassLoader;
+import me.neatmonster.spacemodule.management.VersionsManager;
+import me.neatmonster.spacemodule.utilities.Console;
+import me.neatmonster.spacemodule.utilities.Utilities;
 
 import org.bukkit.util.config.Configuration;
 
@@ -126,7 +126,7 @@ public class SpaceModule extends Module {
             final URL url = new URL("file:" + jar.getAbsolutePath());
             System.out.println(url);
             classLoader = new ImprovedClassLoader(new URL[] {url}, getClass().getClassLoader());
-            final Class<?> loadedClass = classLoader.loadClass("net.xereo.spacertk.SpaceRTK");
+            final Class<?> loadedClass = classLoader.loadClass("me.neatmonster.spacertk.SpaceRTK");
             spaceRTK = loadedClass.getConstructor().newInstance();
             final Method onEnable = loadedClass.getMethod("onEnable");
             onEnable.invoke(spaceRTK);
