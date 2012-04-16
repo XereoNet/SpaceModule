@@ -39,12 +39,21 @@
 
     <!-- Repository locations -->
     <repositories>
+
+        <!-- RemoteToolkit Repository -->
+        <repository>
+            <id>rtk-snapshots</id>
+            <name>RTK Snapshots</name>
+            <url>http://dev.drdanick.com/repo/content/repositories/rtk-snapshots</url>
+        </repository>
+
         <!-- 3rd party's repository -->
         <repository>
             <id>thirdparty</id>
             <name>3rd party (Nexus)</name>
             <url>http://dev.drdanick.com/repo/content/repositories/thirdparty</url>
         </repository>
+
         <!-- SnakeYAML's repository -->
         <repository>
             <id>snakeyaml</id>
@@ -60,6 +69,13 @@
             <artifactId>McRKitLauncher</artifactId>
             <version>R10A12</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.drdanick.rtoolkit</groupId>
+            <artifactId>remotetoolkit</artifactId>
+            <version>R11-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
