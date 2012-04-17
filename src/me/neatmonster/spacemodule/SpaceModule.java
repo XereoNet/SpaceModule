@@ -66,6 +66,8 @@ public class SpaceModule extends Module {
     public SpaceModule(final ModuleMetadata meta, final ModuleLoader moduleLoader, final ClassLoader cLoader) {
         super(meta, moduleLoader, cLoader, ToolkitEvent.ON_TOOLKIT_START, ToolkitEvent.NULL_EVENT);
         instance = this;
+        edt = new EventDispatcher();
+        eventHandler = new EventHandler();
         System.out.print("Done.\nLoading SpaceModule...");
     }
 
@@ -211,9 +213,6 @@ public class SpaceModule extends Module {
             Console.newLine();
         }
 
-        if(edt == null)
-            edt = new EventDispatcher();
-
         if(!edt.isRunning()) {
             synchronized (edt) {
                 edt.notifyAll();
@@ -224,15 +223,8 @@ public class SpaceModule extends Module {
             edtThread.start();
         }
 
-        if(eventHandler != null) {
-            eventHandler.setEnabled(true);
-            if(!eventHandler.isRunning()) {
-                Thread handlerThread = new Thread(eventHandler, "SpaceModule EventHandler");
-                handlerThread.setDaemon(true);
-                handlerThread.start();
-            }
-        } else {
-            eventHandler = new EventHandler();
+        eventHandler.setEnabled(true);
+        if(!eventHandler.isRunning()) {
             Thread handlerThread = new Thread(eventHandler, "SpaceModule EventHandler");
             handlerThread.setDaemon(true);
             handlerThread.start();
