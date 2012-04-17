@@ -139,7 +139,6 @@ public class SpaceModule extends Module {
     private void load(final File jar) {
         try {
             final URL url = new URL("file:" + jar.getAbsolutePath());
-            System.out.println(url);
             classLoader = new ImprovedClassLoader(new URL[] {url}, getClass().getClassLoader());
             final Class<?> loadedClass = classLoader.loadClass("me.neatmonster.spacertk.SpaceRTK");
             spaceRTK = loadedClass.getConstructor().newInstance();
