@@ -217,7 +217,6 @@ public class SpaceModule extends Module {
             synchronized (edt) {
                 edt.notifyAll();
             }
-            edt.setRunning(true);
             Thread edtThread = new Thread(edt, "SpaceModule EventDispatcher");
             edtThread.setDaemon(true);
             edtThread.start();
