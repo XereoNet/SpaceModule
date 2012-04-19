@@ -171,7 +171,6 @@ public class SpaceModule extends Module {
     public void onDisable() {
         unload();
         edt.setRunning(false);
-        System.out.println("Disabling edt..."); //DEBUG
         synchronized (edt) {
             edt.notifyAll();
         }
@@ -220,7 +219,6 @@ public class SpaceModule extends Module {
             Thread edtThread = new Thread(edt, "SpaceModule EventDispatcher");
             edtThread.setDaemon(true);
             edtThread.start();
-            System.out.println("EDT started..."); //DEBUG
         }
 
         eventHandler.setEnabled(true);
@@ -228,7 +226,6 @@ public class SpaceModule extends Module {
             Thread handlerThread = new Thread(eventHandler, "SpaceModule EventHandler");
             handlerThread.setDaemon(true);
             handlerThread.start();
-            System.out.println("EventHandler started..."); //DEBUG
         }
 
         Console.footer();
