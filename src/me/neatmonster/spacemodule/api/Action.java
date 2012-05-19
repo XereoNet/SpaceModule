@@ -21,9 +21,22 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+/**
+ * Denotes the method can be called from the Panel as an Action
+ * @author Aidan
+ *
+ */
 public @interface Action {
 
+    /**
+     * Gets the aliases of the action
+     * @return Aliases of the Action
+     */
     String[] aliases();
 
+    /**
+     * Gets if an action is schedulable
+     * @return If the action is schedulable
+     */
     boolean schedulable() default true;
 }

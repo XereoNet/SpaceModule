@@ -22,6 +22,9 @@ import me.neatmonster.spacemodule.utilities.Utilities;
 
 import org.bukkit.util.config.Configuration;
 
+/**
+ * Manages the versions of the Moduled
+ */
 @SuppressWarnings("deprecation")
 public class VersionsManager {
     public final String                          PROJECT_NAME;
@@ -32,10 +35,19 @@ public class VersionsManager {
 
     private final LinkedHashMap<Integer, String> builds = new LinkedHashMap<Integer, String>();
 
+    /**
+     * Creats anew VersionsManager
+     * @param projectName Name of the project it is managing
+     */
     public VersionsManager(final String projectName) {
         PROJECT_NAME = projectName;
     }
 
+    /**
+     * Matches an MD5 with a build number
+     * @param md5 MD5 to match
+     * @return Build number, -1 if none
+     */
     public int match(final String md5) {
         if (builds.containsValue(md5))
             for (final int buildNumber : builds.keySet()) {
@@ -43,9 +55,12 @@ public class VersionsManager {
                 if (bMD5.equalsIgnoreCase(md5))
                     return buildNumber;
             }
-        return 0;
+        return -1;
     }
 
+    /**
+     * Sets up the versions
+     */
     public void setup() {
         Console.progress("Checking for updates", 0);
         final Configuration database = new Configuration(SpaceModule.DATABASE);
