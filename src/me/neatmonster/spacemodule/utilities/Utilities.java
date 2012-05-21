@@ -27,6 +27,13 @@ import java.security.MessageDigest;
 
 public class Utilities {
 
+    /**
+     * Downloads a file
+     * @param urlString URL to download the file from
+     * @param file File to download to
+     * @param text Thing being downloaded
+     * @return If successful
+     */
     public static boolean downloadFile(final String urlString, final File file, final String text) {
         Console.progress(text, 0);
         try {
@@ -49,6 +56,11 @@ public class Utilities {
         return false;
     }
 
+    /**
+     * Gets the contents of a URL
+     * @param urlString URL to get the contents of
+     * @return Contents of the URL
+     */
     public static String getContent(final String urlString) {
         try {
             final URL url = new URL(urlString);
@@ -63,6 +75,11 @@ public class Utilities {
         return null;
     }
 
+    /**
+     * Gets the MD5 of a file
+     * @param file File to get the MD5 of
+     * @return MD5 of the file
+     */
     public static String getMD5(final File file) {
         try {
             if (file.exists() && file.isFile() && file.canRead()) {

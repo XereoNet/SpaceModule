@@ -14,18 +14,32 @@
  */
 package me.neatmonster.spacemodule.api;
 
+/**
+ * Called when there is an error with an Action
+ */
 public class ActionException extends Exception {
 
     private static final long serialVersionUID = 5467945798187403789L;
 
+    /**
+     * Creates a new ActionException
+     */
     public ActionException() {
         super();
     }
 
+    /**
+     * Creates a new ActionException with an error message
+     * @param message Error message
+     */
     public ActionException(final String message) {
         super(message);
     }
 
+    /**
+     * Creates a new ActionException with an error
+     * @param throwable Error
+     */
     public ActionException(final Throwable throwable) {
         super(throwable);
     }

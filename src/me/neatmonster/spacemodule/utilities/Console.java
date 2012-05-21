@@ -14,16 +14,32 @@
  */
 package me.neatmonster.spacemodule.utilities;
 
+/**
+ * Manages interaction with the Console
+ */
 public class Console {
+    /**
+     * Width of the console
+     */
     public static int    WIDTH    = 58;
+    /**
+     * Template for updating
+     */
     public static String TEMPLATE = "| (text)... [(bars)] (percentage) % |";
 
+    /**
+     * Adds a footer to the message
+     */
     public static void footer() {
         for (int a = 0; a < WIDTH; a++)
             System.out.print("-");
         System.out.print("\n");
     }
 
+    /**
+     * Adds a header to the message
+     * @param title Header to add
+     */
     public static void header(final String title) {
         final int dashes = WIDTH - title.length() - 2;
         final int left = (int) Math.ceil(dashes / 2D);
@@ -36,10 +52,18 @@ public class Console {
         System.out.print("\n");
     }
 
+    /**
+     * Sends a new line
+     */
     public static void newLine() {
         System.out.print("\n");
     }
 
+    /**
+     * Updates the progress of the message
+     * @param text Thing being updated
+     * @param percentage Percentage of updating completed
+     */
     public static void progress(String text, final int percentage) {
         if (text.length() > 20)
             text = text.substring(0, 20);
@@ -64,6 +88,13 @@ public class Console {
         System.out.print(string + "\r");
     }
 
+    /**
+     * Schedules the progress to be updated automatically at intervals
+     * @param text Thing being updated
+     * @param start Percentage to start
+     * @param end Percentage to end
+     * @param time Time to wait between
+     */
     public static void timedProgress(final String text, final int start, final int end, final long time) {
         final long interval = Math.round((double) time / (double) (end - start));
         for (int a = start; a < end + 1; a++) {

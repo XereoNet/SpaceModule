@@ -20,12 +20,23 @@ import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.jar.JarFile;
 
+/**
+ * Improved version of the URLClassLoader
+ */
 public class ImprovedClassLoader extends URLClassLoader {
 
+    /**
+     * Creates a new ImprovedClassLoader
+     * @param urls URLs to load
+     * @param parent Parent ClassLoader
+     */
     public ImprovedClassLoader(final URL[] urls, final ClassLoader parent) {
         super(urls, parent);
     }
-
+    
+    /**
+     * Releases the classes fully
+     */
     public void release() {
         try {
             final Field field = java.net.URLClassLoader.class.getDeclaredField("ucp");

@@ -38,14 +38,30 @@ import com.drdanick.McRKit.module.Module;
 import com.drdanick.McRKit.module.ModuleLoader;
 import com.drdanick.McRKit.module.ModuleMetadata;
 
+/**
+ * Main class of the Module
+ */
 @SuppressWarnings("deprecation")
 public class SpaceModule extends Module {
+    /**
+     * Main Directory of the Module
+     */
     public static final File   MAIN_DIRECTORY = new File("SpaceModule");
+    /**
+     * Configuration file of the Module
+     */
     public static final File   CONFIGURATION  = new File(MAIN_DIRECTORY.getPath(), "configuration.yml");
+    /**
+     * Database file of the Module
+     */
     public static final File   DATABASE       = new File(MAIN_DIRECTORY.getPath(), "cache.db");
 
     private static SpaceModule instance;
 
+    /**
+     * Gets an instance of the SpaceModule
+     * @return SpaceModule instance
+     */
     public static SpaceModule getInstance() {
         return instance;
     }
@@ -63,6 +79,12 @@ public class SpaceModule extends Module {
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
 
+    /**
+     * Creates a new SpaceModule
+     * @param meta Module Metadata
+     * @param moduleLoader Module loader
+     * @param cLoader Class loader
+     */
     public SpaceModule(final ModuleMetadata meta, final ModuleLoader moduleLoader, final ClassLoader cLoader) {
         super(meta, moduleLoader, cLoader, ToolkitEvent.ON_TOOLKIT_START, ToolkitEvent.NULL_EVENT);
         instance = this;
@@ -71,6 +93,11 @@ public class SpaceModule extends Module {
         System.out.print("Done.\nLoading SpaceModule...");
     }
 
+    /**
+     * Starts the Module
+     * @param versionsManager Version manager
+     * @param firstTime If this is the first creation
+     */
     public void execute(final VersionsManager versionsManager, final boolean firstTime) {
         File artifact = null;
         if (type.equals("Bukkit"))
@@ -91,6 +118,10 @@ public class SpaceModule extends Module {
         Console.newLine();
     }
 
+    /**
+     * Gets the version of the SpaceRTK
+     * @return SpaceRTK version
+     */
     public String getModuleVersion() {
         try {
             if (versionsManager == null) {
@@ -112,6 +143,10 @@ public class SpaceModule extends Module {
         return "<unknown>";
     }
 
+    /**
+     * Gets the version of the Module
+     * @return Module version
+     */
     public String getVersion() {
         try {
             final VersionsManager spaceModuleVersionsManager = new VersionsManager("SpaceModule");
@@ -128,14 +163,26 @@ public class SpaceModule extends Module {
         return "<unknown>";
     }
 
+    /**
+     * Gets the EDT
+     * @return EDT
+     */
     public EventDispatcher getEdt() {
         return edt;
     }
 
+    /**
+     * Gets the ToolkitEventHandler
+     * @return ToolkitEvcentHandler
+     */
     public ToolkitEventHandler getEventHandler() {
         return eventHandler;
     }
 
+    /**
+     * Loads a file
+     * @param jar File to load
+     */
     private void load(final File jar) {
         try {
             final URL url = new URL("file:" + jar.getAbsolutePath());
@@ -149,6 +196,9 @@ public class SpaceModule extends Module {
         }
     }
 
+    /**
+     * Loads the configuration
+     */
     private void loadConfiguration() {
         final Configuration configuration = new Configuration(CONFIGURATION);
         configuration.load();
@@ -231,6 +281,9 @@ public class SpaceModule extends Module {
         Console.footer();
     }
 
+    /**
+     * Unloads the SpaceRTK
+     */
     private void unload() {
         try {
             final Method onDisable = spaceRTK.getClass().getMethod("onDisable");
@@ -243,6 +296,12 @@ public class SpaceModule extends Module {
         }
     }
 
+    /**
+     * Updates the SpaceRTK
+     * @param versionsManager VersionManager
+     * @param artifact Artifact to update to
+     * @param firstTime If this is the first run
+     */
     private void update(final VersionsManager versionsManager, final File artifact, final boolean firstTime) {
         boolean wasRunning = false;
         if (!firstTime)
@@ -271,8 +330,13 @@ public class SpaceModule extends Module {
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
     }
 
+    /**
+     * Does...Nothing?
+     */
     private class EventHandler extends ToolkitEventHandler {
-
+        /**
+         * Creates a new EventHandler
+         */
         public EventHandler() {
             setEnabled(true);
         }

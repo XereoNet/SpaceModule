@@ -20,9 +20,19 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+/**
+ * Manages actions and calls them
+ */
 public class ActionsManager {
     protected LinkedHashMap<String, Method> actions = new LinkedHashMap<String, Method>();
 
+    /**
+     * Casts an object
+     * @param object Object to cast
+     * @param current Current class
+     * @param expected Expected class
+     * @return The casted object, null if couldn't be casted
+     */
     public Object cast(final Object object, final Class<?> current, final Class<?> expected) {
         try {
             if (expected == Object[].class)
@@ -57,10 +67,23 @@ public class ActionsManager {
         }
     }
 
+    /**
+     * Checks if an action is defined by an alias
+     * @param alias Alias to check
+     * @return If an action is defined
+     */
     public boolean contains(final String alias) {
         return actions.containsKey(alias.toLowerCase());
     }
 
+    /**
+     * Executes an action
+     * @param alias Action name
+     * @param arguments Arguments to execute the action with
+     * @return Result of the action
+     * @throws InvalidArgumentsException If an action cannot be found
+     * @throws UnhandledActionException If an action is unhandled
+     */
     public Object execute(final String alias, final Object... arguments) throws InvalidArgumentsException,
             UnhandledActionException {
         final Method method = actions.get(alias.toLowerCase());
@@ -85,6 +108,12 @@ public class ActionsManager {
         return invoke(method, arguments);
     }
 
+    /**
+     * Involkes a method
+     * @param method Method to involke
+     * @param arguments Arguments to involke the method with
+     * @return The result of the method
+     */
     protected Object invoke(final Method method, final Object... arguments) {
         try {
             return method.invoke(method.getDeclaringClass().newInstance(), arguments);
@@ -102,6 +131,12 @@ public class ActionsManager {
         return null;
     }
 
+    /**
+     * Checks if an action is schedulable
+     * @param alias Action name
+     * @return If an action is schedulable
+     * @throws UnhandledActionException If the action is not defined
+     */
     public boolean isSchedulable(final String alias) throws UnhandledActionException {
         final Method method = actions.get(alias.toLowerCase());
         if (method == null)
@@ -110,6 +145,10 @@ public class ActionsManager {
         return action.schedulable();
     }
 
+    /**
+     * Registeres a class and sets up it's actions
+     * @param class_ Class to register
+     */
     public void register(final Class<?> class_) {
         for (final Method method : class_.getMethods()) {
             if (!method.isAnnotationPresent(Action.class))

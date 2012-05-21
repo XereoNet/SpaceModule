@@ -14,7 +14,17 @@
  */
 package me.neatmonster.spacemodule.api;
 
+/**
+ * Called when an Action is unhandled or cannot be found
+ */
 public class UnhandledActionException extends ActionException {
     private static final long serialVersionUID = 4109848733737585259L;
+    
+    /**
+     * Creates a new UnHandledActionException
+     */
+    public UnhandledActionException() {
+        
+    }
 
 }
