@@ -71,7 +71,6 @@ public class SpaceModule extends Module {
         instance = this;
         edt = new EventDispatcher();
         eventHandler = new EventHandler();
-        pingListener = new PingListener();
         try {
             pingListener = new PingListener();
         } catch (UnknownHostException e) {
