@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -62,12 +63,29 @@ public class SpaceModule extends Module {
 
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
+    
+    private PingListener pingListener;
 
     public SpaceModule(final ModuleMetadata meta, final ModuleLoader moduleLoader, final ClassLoader cLoader) {
         super(meta, moduleLoader, cLoader, ToolkitEvent.ON_TOOLKIT_START, ToolkitEvent.NULL_EVENT);
         instance = this;
         edt = new EventDispatcher();
         eventHandler = new EventHandler();
+        try {
+            pingListener = new PingListener();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         System.out.print("Done.\nLoading SpaceModule...");
     }
 
@@ -175,6 +193,7 @@ public class SpaceModule extends Module {
             edt.notifyAll();
         }
         eventHandler.setEnabled(false);
+        pingListener.shutdown();
         instance = null;
     }
 
@@ -222,6 +241,7 @@ public class SpaceModule extends Module {
         }
 
         eventHandler.setEnabled(true);
+        pingListener.startup();
         if(!eventHandler.isRunning()) {
             Thread handlerThread = new Thread(eventHandler, "SpaceModule EventHandler");
             handlerThread.setDaemon(true);
@@ -247,9 +267,7 @@ public class SpaceModule extends Module {
         boolean wasRunning = false;
         if (!firstTime)
             try {
-                final Field field = Wrapper.getInstance().getClass().getDeclaredField("serverRunning");
-                field.setAccessible(true);
-                wasRunning = (Boolean) field.get(Wrapper.getInstance());
+                wasRunning = isServerRunning();
                 if (wasRunning)
                     Wrapper.getInstance().performAction(ToolkitAction.HOLD, null);
             } catch (final Exception e) {
@@ -269,6 +287,17 @@ public class SpaceModule extends Module {
         Utilities.downloadFile(url, artifact, "Updating SpaceBukkit");
         if (!firstTime && wasRunning)
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
+    }
+    
+    public static boolean isServerRunning() {
+        try {
+            final Field field = Wrapper.getInstance().getClass().getDeclaredField("serverRunning");
+            field.setAccessible(true);
+            return (Boolean) field.get(Wrapper.getInstance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private class EventHandler extends ToolkitEventHandler {
