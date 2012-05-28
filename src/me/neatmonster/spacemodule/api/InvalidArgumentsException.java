@@ -14,9 +14,16 @@
  */
 package me.neatmonster.spacemodule.api;
 
+/**
+ * Called when an Action is called with invalid arguments
+ */
 public class InvalidArgumentsException extends ActionException {
     private static final long serialVersionUID = -6971818254346676403L;
 
+    /**
+     * Creates a new InvalidArgumentsException with an error message
+     * @param message Error message
+     */
     public InvalidArgumentsException(final String message) {
         super(message);
     }
