@@ -1,11 +1,8 @@
 package org.bukkit.configuration;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.List;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.util.Vector;
-import org.bukkit.inventory.ItemStack;
 
 /**
  * Represents a section of a {@link Configuration}
@@ -551,118 +548,6 @@ public interface ConfigurationSection {
      * @return Requested List of Maps.
      */
     public List<Map<?, ?>> getMapList(String path);
-
-    // Bukkit
-    /**
-     * Gets the requested Vector by path.
-     * <p>
-     * If the Vector does not exist but a default value has been specified, this
-     * will return the default value. If the Vector does not exist and no default
-     * value was specified, this will return null.
-     *
-     * @param path Path of the Vector to get.
-     * @return Requested Vector.
-     */
-    public Vector getVector(String path);
-
-    /**
-     * Gets the requested {@link Vector} by path, returning a default value if not found.
-     * <p>
-     * If the Vector does not exist then the specified default value will returned
-     * regardless of if a default has been identified in the root {@link Configuration}.
-     *
-     * @param path Path of the Vector to get.
-     * @param def The default value to return if the path is not found or is not a Vector.
-     * @return Requested Vector.
-     */
-    public Vector getVector(String path, Vector def);
-
-    /**
-     * Checks if the specified path is a Vector.
-     * <p>
-     * If the path exists but is not a Vector, this will return false. If the path does not
-     * exist, this will return false. If the path does not exist but a default value
-     * has been specified, this will check if that default value is a Vector and return
-     * appropriately.
-     *
-     * @param path Path of the Vector to check.
-     * @return Whether or not the specified path is a Vector.
-     */
-    public boolean isVector(String path);
-
-    /**
-     * Gets the requested OfflinePlayer by path.
-     * <p>
-     * If the OfflinePlayer does not exist but a default value has been specified, this
-     * will return the default value. If the OfflinePlayer does not exist and no default
-     * value was specified, this will return null.
-     *
-     * @param path Path of the OfflinePlayer to get.
-     * @return Requested OfflinePlayer.
-     */
-    public OfflinePlayer getOfflinePlayer(String path);
-
-    /**
-     * Gets the requested {@link OfflinePlayer} by path, returning a default value if not found.
-     * <p>
-     * If the OfflinePlayer does not exist then the specified default value will returned
-     * regardless of if a default has been identified in the root {@link Configuration}.
-     *
-     * @param path Path of the OfflinePlayer to get.
-     * @param def The default value to return if the path is not found or is not an OfflinePlayer.
-     * @return Requested OfflinePlayer.
-     */
-    public OfflinePlayer getOfflinePlayer(String path, OfflinePlayer def);
-
-    /**
-     * Checks if the specified path is an OfflinePlayer.
-     * <p>
-     * If the path exists but is not a OfflinePlayer, this will return false. If the path does not
-     * exist, this will return false. If the path does not exist but a default value
-     * has been specified, this will check if that default value is a OfflinePlayer and return
-     * appropriately.
-     *
-     * @param path Path of the OfflinePlayer to check.
-     * @return Whether or not the specified path is an OfflinePlayer.
-     */
-    public boolean isOfflinePlayer(String path);
-
-    /**
-     * Gets the requested ItemStack by path.
-     * <p>
-     * If the ItemStack does not exist but a default value has been specified, this
-     * will return the default value. If the ItemStack does not exist and no default
-     * value was specified, this will return null.
-     *
-     * @param path Path of the ItemStack to get.
-     * @return Requested ItemStack.
-     */
-    public ItemStack getItemStack(String path);
-
-    /**
-     * Gets the requested {@link ItemStack} by path, returning a default value if not found.
-     * <p>
-     * If the ItemStack does not exist then the specified default value will returned
-     * regardless of if a default has been identified in the root {@link Configuration}.
-     *
-     * @param path Path of the ItemStack to get.
-     * @param def The default value to return if the path is not found or is not an ItemStack.
-     * @return Requested ItemStack.
-     */
-    public ItemStack getItemStack(String path, ItemStack def);
-
-    /**
-     * Checks if the specified path is an ItemStack.
-     * <p>
-     * If the path exists but is not a ItemStack, this will return false. If the path does not
-     * exist, this will return false. If the path does not exist but a default value
-     * has been specified, this will check if that default value is a ItemStack and return
-     * appropriately.
-     *
-     * @param path Path of the ItemStack to check.
-     * @return Whether or not the specified path is an ItemStack.
-     */
-    public boolean isItemStack(String path);
 
     /**
      * Gets the requested ConfigurationSection by path.

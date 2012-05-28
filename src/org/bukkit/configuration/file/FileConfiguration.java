@@ -1,7 +1,5 @@
 package org.bukkit.configuration.file;
 
-import com.google.common.io.Files;
-import org.bukkit.configuration.InvalidConfigurationException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,7 +8,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
 import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemoryConfiguration;
 
 /**
@@ -48,8 +48,6 @@ public abstract class FileConfiguration extends MemoryConfiguration {
         if (file == null) {
             throw new IllegalArgumentException("File cannot be null");
         }
-
-        Files.createParentDirs(file);
 
         String data = saveToString();
 

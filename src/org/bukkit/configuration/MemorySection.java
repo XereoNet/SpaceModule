@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 import static org.bukkit.util.NumberConversions.*;
 
 /**
@@ -796,88 +793,6 @@ public class MemorySection implements ConfigurationSection {
         }
 
         return result;
-    }
-
-    // Bukkit
-    public Vector getVector(String path) {
-        if (path == null) {
-            throw new IllegalArgumentException("Path cannot be null");
-        }
-
-        Object def = getDefault(path);
-        return getVector(path, (def instanceof Vector) ? (Vector) def : null);
-    }
-
-    public Vector getVector(String path, Vector def) {
-        if (path == null) {
-            throw new IllegalArgumentException("Path cannot be null");
-        }
-
-        Object val = get(path, def);
-        return (val instanceof Vector) ? (Vector) val : def;
-    }
-
-    public boolean isVector(String path) {
-        if (path == null) {
-            throw new IllegalArgumentException("Path cannot be null");
-        }
-
-        Object val = get(path);
-        return val instanceof Vector;
-    }
-
-    public OfflinePlayer getOfflinePlayer(String path) {
-        if (path == null) {
-            throw new IllegalArgumentException("Path cannot be null");
-        }
-
-        Object def = getDefault(path);
-        return getOfflinePlayer(path, (def instanceof OfflinePlayer) ? (OfflinePlayer) def : null);
-    }
-
-    public OfflinePlayer getOfflinePlayer(String path, OfflinePlayer def) {
-        if (path == null) {
-            throw new IllegalArgumentException("Path cannot be null");
-        }
-
-        Object val = get(path, def);
-        return (val instanceof OfflinePlayer) ? (OfflinePlayer) val : def;
-    }
-
-    public boolean isOfflinePlayer(String path) {
-        if (path == null) {
-            throw new IllegalArgumentException("Path cannot be null");
-        }
-
-        Object val = get(path);
-        return val instanceof OfflinePlayer;
-    }
-
-    public ItemStack getItemStack(String path) {
-        if (path == null) {
-            throw new IllegalArgumentException("Path cannot be null");
-        }
-
-        Object def = getDefault(path);
-        return getItemStack(path, (def instanceof ItemStack) ? (ItemStack) def : null);
-    }
-
-    public ItemStack getItemStack(String path, ItemStack def) {
-        if (path == null) {
-            throw new IllegalArgumentException("Path cannot be null");
-        }
-
-        Object val = get(path, def);
-        return (val instanceof ItemStack) ? (ItemStack) val : def;
-    }
-
-    public boolean isItemStack(String path) {
-        if (path == null) {
-            throw new IllegalArgumentException("Path cannot be null");
-        }
-
-        Object val = get(path);
-        return val instanceof ItemStack;
     }
 
     public ConfigurationSection getConfigurationSection(String path) {
