@@ -14,13 +14,14 @@
  */
 package me.neatmonster.spacemodule.management;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 
 import me.neatmonster.spacemodule.SpaceModule;
 import me.neatmonster.spacemodule.utilities.Console;
 import me.neatmonster.spacemodule.utilities.Utilities;
 
-import org.bukkit.util.config.Configuration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
  * Manages the versions of the Moduled
@@ -63,8 +64,7 @@ public class VersionsManager {
      */
     public void setup() {
         Console.progress("Checking for updates", 0);
-        final Configuration database = new Configuration(SpaceModule.DATABASE);
-        database.load();
+        final YamlConfiguration database = YamlConfiguration.loadConfiguration(SpaceModule.DATABASE);
         final int lastChecked = database.getInt(PROJECT_NAME + ".LastChecked", 0);
         final String developmentPage = Utilities.getContent("http://dev.drdanick.com/jenkins/job/" + PROJECT_NAME
                 + "/lastSuccessfulBuild/buildNumber/");
@@ -84,7 +84,7 @@ public class VersionsManager {
             final int beginIndex = artifactPage.indexOf(PROJECT_NAME.toLowerCase());
             final int endIndex = artifactPage.substring(beginIndex).indexOf(".jar") + beginIndex + 4;
             ARTIFACT_NAME = artifactPage.substring(beginIndex, endIndex);
-            database.setProperty(PROJECT_NAME + ".ArtifactName", ARTIFACT_NAME);
+            database.set(PROJECT_NAME + ".ArtifactName", ARTIFACT_NAME);
             Console.progress("Checking for updates", (int) Math.round(3D / (DEVELOPMENT - lastChecked + 3D) * 100D));
         }
         if (lastChecked > 0)
@@ -99,7 +99,7 @@ public class VersionsManager {
                 final int beginIndex = buildPage.indexOf("<div class=\"md5sum\">MD5: ") + 25;
                 final String md5 = buildPage.substring(beginIndex, beginIndex + 32);
                 builds.put(buildNumber, md5);
-                database.setProperty(PROJECT_NAME + ".Build" + buildNumber, md5);
+                database.set(PROJECT_NAME + ".Build" + buildNumber, md5);
             }
             Console.progress(
                     "Checking for updates",
@@ -107,7 +107,11 @@ public class VersionsManager {
                             / (DEVELOPMENT - lastChecked + (lastChecked == DEVELOPMENT ? 2D : 3D)) * 100D));
         }
         Console.newLine();
-        database.setProperty(PROJECT_NAME + ".LastChecked", DEVELOPMENT);
-        database.save();
+        database.set(PROJECT_NAME + ".LastChecked", DEVELOPMENT);
+        try {
+            database.save(SpaceModule.DATABASE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
