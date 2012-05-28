@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -78,6 +79,7 @@ public class SpaceModule extends Module {
 
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
+    private PingListener pingListener;
 
     /**
      * Creates a new SpaceModule
@@ -90,6 +92,21 @@ public class SpaceModule extends Module {
         instance = this;
         edt = new EventDispatcher();
         eventHandler = new EventHandler();
+        try {
+            pingListener = new PingListener();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         System.out.print("Done.\nLoading SpaceModule...");
     }
 
@@ -221,6 +238,7 @@ public class SpaceModule extends Module {
     public void onDisable() {
         unload();
         edt.setRunning(false);
+        pingListener.shutdown();
         synchronized (edt) {
             edt.notifyAll();
         }
@@ -272,6 +290,7 @@ public class SpaceModule extends Module {
         }
 
         eventHandler.setEnabled(true);
+        pingListener.startup();
         if(!eventHandler.isRunning()) {
             Thread handlerThread = new Thread(eventHandler, "SpaceModule EventHandler");
             handlerThread.setDaemon(true);
@@ -328,6 +347,21 @@ public class SpaceModule extends Module {
         Utilities.downloadFile(url, artifact, "Updating SpaceBukkit");
         if (!firstTime && wasRunning)
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
+    }
+    
+    /**
+     * Checks if the server is running
+     * @return If the server is running
+     */
+    public static boolean isServerRunning() {
+        try {
+            final Field field = Wrapper.getInstance().getClass().getDeclaredField("serverRunning");
+            field.setAccessible(true);
+            return (Boolean) field.get(Wrapper.getInstance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     /**
