@@ -8,8 +8,6 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.nodes.Tag;
 
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
-
 public class YamlConstructor extends SafeConstructor {
 
     public YamlConstructor() {
@@ -24,20 +22,6 @@ public class YamlConstructor extends SafeConstructor {
             }
 
             Map<?, ?> raw = (Map<?, ?>) super.construct(node);
-
-            if (raw.containsKey(ConfigurationSerialization.SERIALIZED_TYPE_KEY)) {
-                Map<String, Object> typed = new LinkedHashMap<String, Object>(raw.size());
-                for (Map.Entry<?, ?> entry : raw.entrySet()) {
-                    typed.put(entry.getKey().toString(), entry.getValue());
-                }
-
-                try {
-                    return ConfigurationSerialization.deserializeObject(typed);
-                } catch (IllegalArgumentException ex) {
-                    throw new YAMLException("Could not deserialize object", ex);
-                }
-            }
-
             return raw;
         }
 
