@@ -19,7 +19,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.DigestInputStream;
@@ -100,5 +103,33 @@ public class Utilities {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    /**
+     * Reads a String from an ObjectInputStream
+     * @param stream Stream to read from
+     * @return String that was read
+     * @throws IOException If there was an error reading the String
+     */
+    public static String readString(ObjectInputStream stream) throws IOException {
+        short size = stream.readShort();
+        StringBuilder builder = new StringBuilder(size);
+        for (int i = 0; i < size; i++) {
+            builder.append(stream.readChar());
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Writes a String to an ObjectOutputStream
+     * @param stream Stream to write to
+     * @param string String to write
+     * @throws IOException If there was an error writing the String
+     */
+    public static void writeString(ObjectOutputStream stream, String string) throws IOException {
+        stream.writeShort((short) string.length());
+        for (int i = 0; i < string.length(); i++) {
+            stream.writeChar(string.charAt(i));
+        }
     }
 }
