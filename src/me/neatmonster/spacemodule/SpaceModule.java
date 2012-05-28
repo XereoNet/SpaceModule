@@ -30,6 +30,7 @@ import me.neatmonster.spacemodule.management.VersionsManager;
 import me.neatmonster.spacemodule.utilities.Console;
 import me.neatmonster.spacemodule.utilities.Utilities;
 
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.util.config.Configuration;
 
 import com.drdanick.McRKit.ToolkitAction;
@@ -217,21 +218,24 @@ public class SpaceModule extends Module {
      * Loads the configuration
      */
     private void loadConfiguration() {
-        final Configuration configuration = new Configuration(CONFIGURATION);
-        configuration.load();
-        configuration.setHeader(
-                "#                !!!ATTENTION!!!                #",
-                "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #",
-                "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #");
+        final YamlConfiguration configuration = YamlConfiguration.loadConfiguration(CONFIGURATION);
+        configuration.options().header(
+                "#                !!!ATTENTION!!!                #\n" +
+                "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #\n" +
+                "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #\n");
 
         type = configuration.getString("SpaceModule.Type", "Bukkit");
-        configuration.setProperty("SpaceModule.Type", type = "Bukkit");
+        configuration.set("SpaceModule.Type", type = "Bukkit");
         recommended = configuration.getBoolean("SpaceModule.Recommended", true);
         development = configuration.getBoolean("SpaceModule.Development", false);
         artifactPath = configuration.getString("SpaceModule.Artifact", "<automatic>");
         if (recommended && development)
-            configuration.setProperty("SpaceModule.Recommended", recommended = false);
-        configuration.save();
+            configuration.set("SpaceModule.Recommended", recommended = false);
+        try {
+            configuration.save(CONFIGURATION);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
