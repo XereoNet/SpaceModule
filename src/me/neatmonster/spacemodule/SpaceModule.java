@@ -23,15 +23,12 @@ import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.drdanick.rtoolkit.EventDispatcher;
-import com.drdanick.rtoolkit.event.ToolkitEventHandler;
 import me.neatmonster.spacemodule.management.ImprovedClassLoader;
 import me.neatmonster.spacemodule.management.VersionsManager;
 import me.neatmonster.spacemodule.utilities.Console;
 import me.neatmonster.spacemodule.utilities.Utilities;
 
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.util.config.Configuration;
 
 import com.drdanick.McRKit.ToolkitAction;
 import com.drdanick.McRKit.ToolkitEvent;
@@ -39,11 +36,12 @@ import com.drdanick.McRKit.Wrapper;
 import com.drdanick.McRKit.module.Module;
 import com.drdanick.McRKit.module.ModuleLoader;
 import com.drdanick.McRKit.module.ModuleMetadata;
+import com.drdanick.rtoolkit.EventDispatcher;
+import com.drdanick.rtoolkit.event.ToolkitEventHandler;
 
 /**
  * Main class of the Module
  */
-@SuppressWarnings("deprecation")
 public class SpaceModule extends Module {
     /**
      * Main Directory of the Module
