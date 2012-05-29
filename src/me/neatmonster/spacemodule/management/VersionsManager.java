@@ -26,7 +26,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 /**
  * Manages the versions of the Moduled
  */
-@SuppressWarnings("deprecation")
 public class VersionsManager {
     public final String                          PROJECT_NAME;
     public String                                ARTIFACT_NAME;

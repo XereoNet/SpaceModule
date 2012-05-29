@@ -38,7 +38,7 @@ public class PingListener extends Thread {
     private long lastPluginResponse;
     private long lastRTKResponse;
 
-    private AtomicBoolean running;
+    private AtomicBoolean running = new AtomicBoolean(false); 
 
     /**
      * Creates a new PingListener
