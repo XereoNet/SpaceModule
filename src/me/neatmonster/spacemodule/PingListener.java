@@ -30,7 +30,7 @@ import me.neatmonster.spacemodule.utilities.Utilities;
 public class PingListener extends Thread {
     public static final long PING_EVERY = 30000; // Thirty seconds
     public static final long REQUEST_BUFFER = 10000; // Ten seconds
-    public static final int WAIT_FOR_REQUEST = 90000; // One and a half minutes
+    public static final int WAIT_FOR_REQUEST = 20000; // Twenty seconds
 
     private final ServerSocket rtkServerSocket;
     private final ServerSocket pluginServerSocket;
