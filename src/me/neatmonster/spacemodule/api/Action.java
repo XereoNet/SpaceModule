@@ -23,8 +23,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 /**
  * Denotes the method can be called from the Panel as an Action
- * @author Aidan
- *
  */
 public @interface Action {
 
