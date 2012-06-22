@@ -24,7 +24,7 @@ import me.neatmonster.spacemodule.utilities.Utilities;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
- * Manages the versions of the Moduled
+ * Manages the versions of the Module
  */
 public class VersionsManager {
     public final String                          PROJECT_NAME;

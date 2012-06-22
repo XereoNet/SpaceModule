@@ -17,53 +17,50 @@ package me.neatmonster.spacemodule;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Field;
-import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import me.neatmonster.spacemodule.utilities.Utilities;
 
+/**
+ * Pings the RTK and Plugin to ensure they are functioning correctly
+ */
 public class PingListener extends Thread {
-    public static final long PING_EVERY = 1 * 1000;
-    public static final long REQUEST_BUFFER = 5 * 100;
+    public static final long PING_EVERY = 30000; // Thirty seconds
+    public static final long REQUEST_BUFFER = 10000; // Ten seconds
+    public static final int WAIT_FOR_REQUEST = 20000; // Twenty seconds
 
-    private final Socket rtkSocket;
-    private final Socket pluginSocket;
-    private final Socket moduleSocket;
+    private final ServerSocket rtkServerSocket;
+    private final ServerSocket pluginServerSocket;
+
+    private Socket rtkSocket;
+    private Socket pluginSocket;
 
     private long lastPluginPing;
     private long lastRTKPing;
     private long lastPluginResponse;
     private long lastRTKResponse;
+    
+    private boolean lostRTK;
+    private boolean lostPlugin;
 
-    private AtomicBoolean running = new AtomicBoolean(false); 
+    private AtomicBoolean running = new AtomicBoolean(false);
 
     /**
      * Creates a new PingListener
-     * @throws UnknownHostException
+     * 
      * @throws IOException
-     * @throws NoSuchFieldException
-     * @throws SecurityException
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
+     *             If an exception is thrown
      */
-    public PingListener() throws UnknownHostException, IOException,
-            NoSuchFieldException, SecurityException, IllegalArgumentException,
-            IllegalAccessException {
-        Object spaceRTK = SpaceModule.getInstance().spaceRTK;
-        Field port = spaceRTK.getClass().getField("port");
-        Field rPort = spaceRTK.getClass().getField("rPort");
-        this.rtkSocket = new Socket(InetAddress.getLocalHost(),
-                rPort.getInt(spaceRTK));
-        this.pluginSocket = new Socket(InetAddress.getLocalHost(),
-                port.getInt(spaceRTK));
-        this.moduleSocket = new Socket(InetAddress.getLocalHost(), 2010); // TODO
-                                                                          // config
-                                                                          // value?
+    public PingListener() throws IOException {
+        this.rtkServerSocket = new ServerSocket(2013);
+        this.pluginServerSocket = new ServerSocket(2014);
+        this.lostRTK = false;
+        this.lostPlugin = false;
     }
-    
+
     /**
      * Starts the Ping Listener
      */
@@ -74,60 +71,87 @@ public class PingListener extends Thread {
 
     @Override
     public void run() {
-        ObjectInputStream moduleStream = null;
-        ObjectOutputStream pluginStream = null;
-        ObjectOutputStream rtkStream = null;
-        try {
-            moduleStream = new ObjectInputStream(moduleSocket.getInputStream());
-            pluginStream = new ObjectOutputStream(
-                    pluginSocket.getOutputStream());
-            rtkStream = new ObjectOutputStream(rtkSocket.getOutputStream());
-        } catch (IOException e) {
-            handleException(e);
+        if (rtkSocket == null) {
+            try {
+                rtkServerSocket.setSoTimeout(WAIT_FOR_REQUEST);
+                rtkSocket = rtkServerSocket.accept();
+            } catch (SocketTimeoutException e) {
+                onRTKNotFound();
+                shutdown();
+                return;
+            } catch (IOException e) {
+                handleException(e, "Connection could not be established with the RTK!");
+            }
+        }
+        if (pluginSocket == null) {
+            try {
+                pluginServerSocket.setSoTimeout(WAIT_FOR_REQUEST);
+                pluginSocket = pluginServerSocket.accept();
+            } catch (SocketTimeoutException e) {
+                onPluginNotFound();
+                shutdown();
+                return;
+            } catch (IOException e) {
+                handleException(e, "Connection could not be established with the Plugin!");
+            }
         }
         while (running.get()) {
             long now = System.currentTimeMillis();
-            String input = null;
-            try {
-                input = Utilities.readString(moduleStream);
-            } catch (IOException e) {
-                handleException(e);
-            }
-            if (input != null) {
-                parse(input);
+            boolean shouldRead = now - lastPluginResponse > PING_EVERY || now - lastRTKResponse > PING_EVERY;
+            if (shouldRead) {
+                try {
+                    ObjectInputStream pluginStream = new ObjectInputStream(pluginSocket.getInputStream());
+                    ObjectInputStream rtkStream = new ObjectInputStream(rtkSocket.getInputStream());
+                    String pluginInput = Utilities.readString(pluginStream);
+                    String rtkInput = Utilities.readString(rtkStream);
+                    if (pluginInput != null) {
+                        parse(pluginInput);
+                    }
+                    if (rtkInput != null) {
+                        parse(rtkInput);
+                    }
+                } catch (IOException e) {
+                    // Do Nothing, as this means that there was no input sent
+                }
             }
             if (now - lastPluginPing > PING_EVERY
                     && SpaceModule.isServerRunning()) {
                 try {
-                    Utilities.writeString(pluginStream, "PING");
+                    ObjectOutputStream stream = new ObjectOutputStream(pluginSocket.getOutputStream());
+                    Utilities.writeString(stream, "PING");
                     lastPluginPing = now;
-                    pluginStream.flush();
+                    stream.flush();
                 } catch (IOException e) {
-                    handleException(e);
+                    handleException(e, "Ping could not be sent to the Plugin!");
                 }
             }
             if (now - lastRTKPing > PING_EVERY) {
                 try {
-                    Utilities.writeString(rtkStream, "PING");
+                    ObjectOutputStream stream = new ObjectOutputStream(rtkSocket.getOutputStream());
+                    Utilities.writeString(stream, "PING");
                     lastRTKPing = now;
-                    rtkStream.flush();
+                    stream.flush();
                 } catch (IOException e) {
-                    handleException(e);
+                    handleException(e, "Ping could not be sent to the RTK!");
                 }
             }
-            if (now - lastPluginResponse > PING_EVERY + REQUEST_BUFFER
+            if (!lostPlugin && now - lastPluginResponse > PING_EVERY + REQUEST_BUFFER
                     && SpaceModule.isServerRunning()) {
                 onPluginNotFound();
+                lostPlugin = true;
             }
-            if (now - lastRTKResponse > PING_EVERY + REQUEST_BUFFER) {
+            if (!lostRTK && now - lastRTKResponse > PING_EVERY + REQUEST_BUFFER) {
                 onRTKNotFound();
+                lostRTK = true;
             }
         }
     }
 
     /**
      * Parses input from the Plugin or RTK
-     * @param input Input from the Plugin or RTK
+     * 
+     * @param input
+     *            Input from the Plugin or RTK
      */
     public void parse(String input) {
         long now = System.currentTimeMillis();
@@ -147,9 +171,14 @@ public class PingListener extends Thread {
     public void shutdown() {
         try {
             this.running.set(false);
-            rtkSocket.close();
-            pluginSocket.close();
-            moduleSocket.close();
+            if (rtkSocket != null && !(rtkSocket.isClosed())) {
+                rtkSocket.close();
+            }
+            if (pluginSocket != null && !(pluginSocket.isClosed())) {
+                pluginSocket.close();
+            }
+           rtkServerSocket.close();
+           pluginServerSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -157,11 +186,15 @@ public class PingListener extends Thread {
 
     /**
      * Called when an exception is thrown
-     * @param e Exception thrown
+     * 
+     * @param e
+     *            Exception thrown
      */
-    public void handleException(Exception e) {
+    public void handleException(Exception e, String reason) {
         shutdown();
-        System.err.println("[SpaceBukkit] Ping Listener Error! Error message:");
+        System.err.println("[SpaceBukkit] Ping Listener Error!");
+        System.err.println(reason);
+        System.err.println("Error message:");
         e.printStackTrace();
     }
 
@@ -169,9 +202,9 @@ public class PingListener extends Thread {
      * Called when the RTK can't be found
      */
     public void onRTKNotFound() {
-        System.err.println("[SpaceBukkit] Unable to ping SpaceRTK!");
+        System.err.println("[SpaceBukkit] Unable to ping the RTK!");
         System.err
-                .println("[SpaceBukkit] Please insure the correct ports are open");
+                .println("[SpaceBukkit] Please ensure the correct ports are open");
         System.err
                 .println("[SpaceBukkit] Please contact the forums (http://forums.xereo.net/) or IRC (#SpaceBukkit on irc.esper.net)");
     }
@@ -182,7 +215,7 @@ public class PingListener extends Thread {
     public void onPluginNotFound() {
         System.err.println("[SpaceBukkit] Unable to ping the Plugin!");
         System.err
-                .println("[SpaceBukkit] Please insure the correct ports are open");
+                .println("[SpaceBukkit] Please ensure the correct ports are open");
         System.err
                 .println("[SpaceBukkit] Please contact the forums (http://forums.xereo.net/) or IRC (#SpaceBukkit on irc.esper.net)");
     }

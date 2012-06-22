@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -70,6 +69,9 @@ public class SpaceModule extends Module {
     public boolean              development     = false;
     public boolean              recommended     = false;
     public String               artifactPath    = null;
+    
+    public int spaceBukkitPort;
+    public int spaceRTKPort;
 
     public Timer                timer           = new Timer();
     public Object               spaceRTK        = null;
@@ -91,21 +93,6 @@ public class SpaceModule extends Module {
         instance = this;
         edt = new EventDispatcher();
         eventHandler = new EventHandler();
-        try {
-            pingListener = new PingListener();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         System.out.print("Done.\nLoading SpaceModule...");
     }
 
@@ -116,11 +103,16 @@ public class SpaceModule extends Module {
      */
     public void execute(final VersionsManager versionsManager, final boolean firstTime) {
         File artifact = null;
-        if (type.equals("Bukkit"))
+        if (type.equals("Bukkit")) {
             artifact = new File("plugins", versionsManager.ARTIFACT_NAME);
-        if (!artifact.exists())
+        }
+        if (artifact == null) {
+            return;
+        }
+        if (!artifact.exists()) {
             update(versionsManager, artifact, firstTime);
-        else
+        }
+        else {
             try {
                 final String md5 = Utilities.getMD5(artifact);
                 final int buildNumber = versionsManager.match(md5);
@@ -130,6 +122,7 @@ public class SpaceModule extends Module {
             } catch (final Exception e) {
                 e.printStackTrace();
             }
+        }
         Console.timedProgress("Starting SpaceBukkit", 0, 100, 500L);
         Console.newLine();
     }
@@ -189,7 +182,7 @@ public class SpaceModule extends Module {
 
     /**
      * Gets the ToolkitEventHandler
-     * @return ToolkitEvcentHandler
+     * @return ToolkitEventHandler
      */
     public ToolkitEventHandler getEventHandler() {
         return eventHandler;
@@ -227,6 +220,8 @@ public class SpaceModule extends Module {
         recommended = configuration.getBoolean("SpaceModule.Recommended", true);
         development = configuration.getBoolean("SpaceModule.Development", false);
         artifactPath = configuration.getString("SpaceModule.Artifact", "<automatic>");
+        spaceBukkitPort = configuration.getInt("SpaceBukkit.port", 2011);
+        spaceRTKPort = configuration.getInt("SpaceRTK.port", 2012);
         if (recommended && development)
             configuration.set("SpaceModule.Recommended", recommended = false);
         try {
@@ -260,6 +255,12 @@ public class SpaceModule extends Module {
                 e.printStackTrace();
             }
         loadConfiguration();
+        try {
+            pingListener = new PingListener();
+            pingListener.startup();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if (recommended || development) {
             versionsManager = new VersionsManager("Space" + type);
             versionsManager.setup();
@@ -292,7 +293,6 @@ public class SpaceModule extends Module {
         }
 
         eventHandler.setEnabled(true);
-        pingListener.startup();
         if(!eventHandler.isRunning()) {
             Thread handlerThread = new Thread(eventHandler, "SpaceModule EventHandler");
             handlerThread.setDaemon(true);
@@ -367,7 +367,7 @@ public class SpaceModule extends Module {
     }
 
     /**
-     * Does...Nothing?
+     * Forces the ToolkitEventHandler to function correctly
      */
     private class EventHandler extends ToolkitEventHandler {
         /**
