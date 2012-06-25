@@ -52,7 +52,7 @@ public class VersionsManager {
         if (builds.containsValue(md5))
             for (final int buildNumber : builds.keySet()) {
                 final String bMD5 = builds.get(buildNumber);
-                if (bMD5.equalsIgnoreCase(md5))
+                if (bMD5 != null && bMD5.equalsIgnoreCase(md5))
                     return buildNumber;
             }
         return -1;
