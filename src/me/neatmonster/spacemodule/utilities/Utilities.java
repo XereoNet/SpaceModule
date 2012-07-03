@@ -52,6 +52,7 @@ public class Utilities {
                 output.write(data, 0, count);
             }
             Console.newLine();
+            output.close();
             return true;
         } catch (final Exception e) {
             e.printStackTrace();
@@ -97,6 +98,7 @@ public class Utilities {
                         md5.append('0');
                     md5.append(String.format("%x", b));
                 }
+                inputStream.close();
                 return md5.toString().toLowerCase();
             }
         } catch (final Exception e) {
