@@ -265,6 +265,14 @@ public class SpaceModule extends Module {
             }
         }
         loadConfiguration();
+        
+        try {
+            pingListener = new PingListener();
+            pingListener.startup();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
         if (recommended || development) {
             versionsManager = new VersionsManager("Space" + type);
             versionsManager.setup();
@@ -285,13 +293,6 @@ public class SpaceModule extends Module {
             load(artifact);
             Console.timedProgress("Starting SpaceBukkit", 0, 100, 500L);
             Console.newLine();
-        }
-        
-        try {
-            pingListener = new PingListener();
-            pingListener.startup();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         if(!edt.isRunning()) {
