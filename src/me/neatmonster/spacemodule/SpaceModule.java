@@ -210,20 +210,28 @@ public class SpaceModule extends Module {
      */
     private void loadConfiguration() {
         final YamlConfiguration configuration = YamlConfiguration.loadConfiguration(CONFIGURATION);
+        configuration.addDefault("SpaceModule.type", "Bukkit");
+        configuration.addDefault("SpaceModule.recommended", true);
+        configuration.addDefault("SpaceModule.development", false);
+        configuration.addDefault("SpaceModule.type", "<automatic>");
+        configuration.addDefault("SpaceBukkit.port", 2011);
+        configuration.addDefault("SpaceRTK.port", 2012);
+        configuration.options().copyDefaults(true);
         configuration.options().header(
                 "#                !!!ATTENTION!!!                #\n" +
                 "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #\n" +
                 "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #\n");
 
-        type = configuration.getString("SpaceModule.Type", "Bukkit");
-        configuration.set("SpaceModule.Type", type = "Bukkit");
-        recommended = configuration.getBoolean("SpaceModule.Recommended", true);
-        development = configuration.getBoolean("SpaceModule.Development", false);
-        artifactPath = configuration.getString("SpaceModule.Artifact", "<automatic>");
+        type = configuration.getString("SpaceModule.type", "Bukkit");
+        configuration.set("SpaceModule.type", type = "Bukkit");
+        recommended = configuration.getBoolean("SpaceModule.recommended", true);
+        development = configuration.getBoolean("SpaceModule.development", false);
+        artifactPath = configuration.getString("SpaceModule.artifact", "<automatic>");
         spaceBukkitPort = configuration.getInt("SpaceBukkit.port", 2011);
         spaceRTKPort = configuration.getInt("SpaceRTK.port", 2012);
-        if (recommended && development)
-            configuration.set("SpaceModule.Recommended", recommended = false);
+        if (recommended && development) {
+            configuration.set("SpaceModule.recommended", recommended = false);
+        }
         try {
             configuration.save(CONFIGURATION);
         } catch (IOException e) {
@@ -246,14 +254,16 @@ public class SpaceModule extends Module {
     @Override
     public void onEnable() {
         Console.header("SpaceModule v0.1");
-        if (!MAIN_DIRECTORY.exists())
+        if (!MAIN_DIRECTORY.exists()) {
             MAIN_DIRECTORY.mkdir();
-        if (!CONFIGURATION.exists())
+        }
+        if (!CONFIGURATION.exists()) {
             try {
                 CONFIGURATION.createNewFile();
             } catch (final IOException e) {
                 e.printStackTrace();
             }
+        }
         loadConfiguration();
         if (recommended || development) {
             versionsManager = new VersionsManager("Space" + type);
