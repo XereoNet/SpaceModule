@@ -115,6 +115,10 @@ public class ActionsManager {
      * @return The result of the method
      */
     protected Object invoke(final Method method, final Object... arguments) {
+        System.out.print("API_DEBUG: method: "+method.getName()+", args: ");
+        for(Object o:arguments)
+            System.out.print(o.getClass()+" ");
+        System.out.println();
         try {
             return method.invoke(method.getDeclaringClass().newInstance(), arguments);
         } catch (final IllegalArgumentException e) {
