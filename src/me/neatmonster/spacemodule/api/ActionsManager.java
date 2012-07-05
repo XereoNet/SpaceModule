@@ -14,18 +14,19 @@
  */
 package me.neatmonster.spacemodule.api;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 
 /**
  * Manages actions and calls them
  */
 public class ActionsManager {
-    protected LinkedHashMap<String, Method> actions = new LinkedHashMap<String, Method>();
+    protected Map<String, Method> actions = new HashMap<String, Method>();
+    protected Map<Class<?>, ActionHandler> handlers = new HashMap<Class<?>, ActionHandler>();
 
     /**
      * Casts an object
@@ -46,23 +47,33 @@ public class ActionsManager {
             final String string = object.toString();
             if (expected == String.class)
                 return string;
+
             else if (expected == Character.class || expected == char.class)
                 return string.charAt(0);
+
             else if (expected == Byte.class || expected == byte.class)
                 return Byte.parseByte(string);
+
             else if (expected == Short.class || expected == short.class)
                 return Short.parseShort(string);
+
             else if (expected == Integer.class || expected == int.class)
                 return Integer.parseInt(string);
+
             else if (expected == Long.class || expected == long.class)
                 return Long.parseLong(string);
+
             else if (expected == Float.class || expected == float.class)
                 return Float.parseFloat(string);
+
             else if (expected == Double.class || expected == double.class)
                 return Double.parseDouble(string);
+
             else if (expected == Boolean.class || expected == boolean.class)
                 return Boolean.parseBoolean(string);
+
             return null;
+
         } catch (final Exception e) {
             return null;
         }
@@ -117,17 +128,32 @@ public class ActionsManager {
      */
     protected Object invoke(final Method method, final Object... arguments) {
         try {
-            return method.invoke(method.getDeclaringClass().newInstance(), arguments);
-        } catch (final IllegalArgumentException e) {
+            ActionHandler handler = handlers.get(method.getDeclaringClass());
+
+            if(handler == null) {
+                handler = (ActionHandler)method.getDeclaringClass().newInstance();
+                handlers.put(method.getDeclaringClass(), handler);
+            }
+            return method.invoke(handler, arguments);
+
+        } catch (IllegalArgumentException e) {
             e.printStackTrace();
-        } catch (final IllegalAccessException e) {
+
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
-        } catch (final InvocationTargetException e) {
+
+        } catch (InvocationTargetException e) {
             e.printStackTrace();
-        } catch (final SecurityException e) {
+
+        } catch (SecurityException e) {
             e.printStackTrace();
-        } catch (final InstantiationException e) {
+
+        } catch (InstantiationException e) {
             e.printStackTrace();
+
+        } catch(ClassCastException e) {
+            e.printStackTrace();
+
         }
         return null;
     }
