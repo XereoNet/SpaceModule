@@ -14,6 +14,7 @@
  */
 package me.neatmonster.spacemodule.api;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -89,21 +90,21 @@ public class ActionsManager {
         final Method method = actions.get(alias.toLowerCase());
         if (method == null)
             throw new UnhandledActionException();
+
+        if(method.getParameterTypes().length != arguments.length)
+            throw new InvalidArgumentsException(method.getParameterTypes().length + " arguments expected, not "
+                    + arguments.length + " for method " + method.getName() + ".");
+
         for (int a = 0; a < method.getParameterTypes().length; a++)
-            try {
-                if (!arguments[a].getClass().getName().equals(method.getParameterTypes()[a].getName())) {
-                    final Object casted = cast(arguments[a], arguments[a].getClass(), method.getParameterTypes()[a]);
-                    if (casted == null)
-                        throw new InvalidArgumentsException(method.getParameterTypes()[a].getSimpleName() + " ("
-                                + method.getParameterTypes()[a].getName() + ") expected, not "
-                                + arguments[a].getClass().getSimpleName() + " (" + arguments[a].getClass().getName()
-                                + ") for method " + method.getName() + ".");
-                    else
-                        arguments[a] = casted;
-                }
-            } catch (final ArrayIndexOutOfBoundsException e) {
-                throw new InvalidArgumentsException(method.getParameterTypes().length + " arguments expected, not "
-                        + arguments.length + " for method " + method.getName() + ".");
+            if (!arguments[a].getClass().getName().equals(method.getParameterTypes()[a].getName())) {
+                final Object casted = cast(arguments[a], arguments[a].getClass(), method.getParameterTypes()[a]);
+                if (casted == null)
+                    throw new InvalidArgumentsException(method.getParameterTypes()[a].getSimpleName() + " ("
+                            + method.getParameterTypes()[a].getName() + ") expected, not "
+                            + arguments[a].getClass().getSimpleName() + " (" + arguments[a].getClass().getName()
+                            + ") for method " + method.getName() + ".");
+                else
+                    arguments[a] = casted;
             }
         return invoke(method, arguments);
     }
@@ -115,10 +116,6 @@ public class ActionsManager {
      * @return The result of the method
      */
     protected Object invoke(final Method method, final Object... arguments) {
-        System.out.print("API_DEBUG: method: "+method.getName()+", args: ");
-        for(Object o:arguments)
-            System.out.print(o.getClass()+" ");
-        System.out.println();
         try {
             return method.invoke(method.getDeclaringClass().newInstance(), arguments);
         } catch (final IllegalArgumentException e) {
