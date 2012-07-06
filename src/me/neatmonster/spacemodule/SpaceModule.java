@@ -213,7 +213,7 @@ public class SpaceModule extends Module {
         configuration.addDefault("SpaceModule.type", "Bukkit");
         configuration.addDefault("SpaceModule.recommended", true);
         configuration.addDefault("SpaceModule.development", false);
-        configuration.addDefault("SpaceModule.type", "<automatic>");
+        configuration.addDefault("SpaceModule.artifact", "<automatic>");
         configuration.addDefault("SpaceBukkit.port", 2011);
         configuration.addDefault("SpaceRTK.port", 2012);
         configuration.options().copyDefaults(true);
