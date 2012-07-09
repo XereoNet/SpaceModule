@@ -91,13 +91,14 @@
             <groupId>de.schlichtherle.truezip</groupId>
             <artifactId>truezip-driver-zip</artifactId>
             <version>7.5.5</version>
-            <scope>runtime</scope>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>de.schlichtherle.truezip</groupId>
             <artifactId>truezip-file</artifactId>
             <version>7.5.5</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -160,45 +161,9 @@
 
                     <filters>
                         <filter>
-                            <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                            </excludes>
-                        </filter>
-
-                        <filter>
                             <artifact>com.drdanick.rtoolkit:remotetoolkit</artifact>
                             <includes>
                                 <include>com/drdanick/rtoolkit/**</include>
-                            </includes>
-                        </filter>
-
-                        <filter>
-                            <artifact>de.schlichtherle.truezip:*</artifact>
-                            <includes>
-                                <include>**</include>
-                            </includes>
-                        </filter>
-
-                        <filter>
-                            <artifact>org.apache.commons:commons-compress</artifact>
-                            <includes>
-                                <include>**</include>
-                            </includes>
-                        </filter>
-
-                        <filter>
-                            <artifact>org.tukaani:xz</artifact>
-                            <includes>
-                                <include>**</include>
-                            </includes>
-                        </filter>
-
-                        <filter>
-                            <artifact>org.bouncycastle:bcprov-jdk16</artifact>
-                            <includes>
-                                <include>**</include>
                             </includes>
                         </filter>
                     </filters>
