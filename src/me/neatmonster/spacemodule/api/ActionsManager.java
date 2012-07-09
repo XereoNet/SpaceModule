@@ -106,7 +106,9 @@ public class ActionsManager {
             throw new InvalidArgumentsException(method.getParameterTypes().length + " arguments expected, not "
                     + arguments.length + " for method " + method.getName() + ".");
 
-        for (int a = 0; a < method.getParameterTypes().length; a++)
+        for (int a = 0; a < method.getParameterTypes().length; a++) {
+            if(arguments[a] == null || arguments[a].getClass() == null || arguments[a].getClass().getName() == null) //XXX: This is ugly and needs to burn
+                throw new InvalidArgumentsException("null parameters are not allowed for method " + method.getName() + ".");
             if (!arguments[a].getClass().getName().equals(method.getParameterTypes()[a].getName())) {
                 final Object casted = cast(arguments[a], arguments[a].getClass(), method.getParameterTypes()[a]);
                 if (casted == null)
@@ -117,6 +119,7 @@ public class ActionsManager {
                 else
                     arguments[a] = casted;
             }
+        }
         return invoke(method, arguments);
     }
 
