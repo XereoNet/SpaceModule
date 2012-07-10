@@ -266,12 +266,8 @@ public class SpaceModule extends Module {
         }
         loadConfiguration();
         
-        try {
-            pingListener = new PingListener();
-            pingListener.startup();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        pingListener = new PingListener();
+        pingListener.startup();
         
         if (recommended || development) {
             versionsManager = new VersionsManager("Space" + type);
