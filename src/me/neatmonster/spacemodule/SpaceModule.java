@@ -360,6 +360,14 @@ public class SpaceModule extends Module {
     }
     
     /**
+     * Gets the PingListener
+     * @return Ping Listener
+     */
+    public PingListener getPingListener() {
+        return pingListener;
+    }
+    
+    /**
      * Checks if the server is running
      * @return If the server is running
      */

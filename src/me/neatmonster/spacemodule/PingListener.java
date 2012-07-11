@@ -19,26 +19,18 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import me.neatmonster.spacemodule.utilities.Utilities;
 
 /**
  * Pings the RTK and Plugin to ensure they are functioning correctly
  */
-public class PingListener extends Thread {
-    public static final long PING_EVERY = 30000; // Thirty seconds
-    public static final long REQUEST_BUFFER = 10000; // Ten seconds
+public class PingListener {
+    public static final int PLUGIN_BUFFER = 20000; // Twenty seconds
+    public static final int REQUEST_BUFFER = 10000; // Ten seconds
 
-    private long lastPluginPing;
-    private long lastRTKPing;
-    private long lastPluginResponse;
-    private long lastRTKResponse;
-
-    private PacketSendClass pluginSender;
-    private PacketReceiveClass pluginReceiver;
-    private PacketSendClass rtkSender;
-    private PacketReceiveClass rtkReceiver;
+    public DatagramSocket rtkSocket;
+    public DatagramSocket pluginSocket;
 
     private boolean lostRTK;
     private boolean lostPlugin;
@@ -51,6 +43,14 @@ public class PingListener extends Thread {
     public PingListener() {
         this.lostRTK = false;
         this.lostPlugin = false;
+        try {
+            this.rtkSocket = new DatagramSocket(2013,
+                    InetAddress.getLocalHost());
+            this.pluginSocket = new DatagramSocket(2014,
+                    InetAddress.getLocalHost());
+        } catch (IOException e) {
+            handleException(e, "Unable to start the PingListener!");
+        }
     }
 
     /**
@@ -61,116 +61,12 @@ public class PingListener extends Thread {
         this.start();
     }
 
-    @Override
-    public void run() {
-        try {
-            pluginSender = new PacketSendClass(2014);
-            pluginReceiver = new PacketReceiveClass(2014);
-            rtkSender = new PacketSendClass(2013);
-            rtkReceiver = new PacketReceiveClass(2013);
-        } catch (SocketException e) {
-            handleException(e, "Error starting the PingListener, socket error!");
-        }
-        while (running.get()) {
-
-        }
-    }
-
     /**
-     * Sends packets to the module
+     * Starts the threads
      */
-    private class PacketSendClass extends Thread {
-        private final DatagramSocket socket;
-        private final int port;
-
-        /**
-         * Creates a new PacketSendClass
-         * 
-         * @param port
-         *            Port to listen on
-         * 
-         * @throws SocketException
-         *             If the socket could not be created
-         */
-        public PacketSendClass(int port) throws SocketException {
-            socket = new DatagramSocket(port);
-            this.port = port;
-        }
-
-        @Override
-        public void run() {
-            long now = System.currentTimeMillis();
-            if (port == 2013) {
-                if (now - lastPluginPing > PING_EVERY) {
-                    try {
-                        byte[] buffer = Utilities.longToBytes(now);
-                        DatagramPacket packet = new DatagramPacket(buffer,
-                                buffer.length, InetAddress.getLocalHost(), 2014);
-                        socket.send(packet);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } else if (port == 2014) {
-                if (now - lastRTKPing > PING_EVERY) {
-                    try {
-                        byte[] buffer = Utilities.longToBytes(now);
-                        DatagramPacket packet = new DatagramPacket(buffer,
-                                buffer.length, InetAddress.getLocalHost(), 2014);
-                        socket.send(packet);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Receives packets from the module
-     */
-    private class PacketReceiveClass extends Thread {
-        private final DatagramSocket socket;
-        private final int port;
-
-        /**
-         * Creates a new PacketReceiveClass
-         * 
-         * @param port
-         *            Port to listen on
-         * 
-         * @throws SocketException
-         *             If the socket could not be created
-         */
-        public PacketReceiveClass(int port) throws SocketException {
-            socket = new DatagramSocket(port);
-            this.port = port;
-        }
-
-        @Override
-        public void run() {
-            long now = System.currentTimeMillis();
-            if (now - lastPluginPing > PING_EVERY) {
-                try {
-                    byte[] buffer = new byte[65536];
-                    DatagramPacket packet = new DatagramPacket(buffer,
-                            buffer.length, InetAddress.getLocalHost(), 2014);
-                    socket.receive(packet);
-                    long sent = Utilities.bytesToLong(packet.getData());
-                    if (port == 2013) {
-                        if (lastRTKResponse < sent) {
-                            lastRTKResponse = sent;
-                        }
-                    } else if (port == 2014) {
-                        if (lastPluginResponse < sent) {
-                            lastPluginResponse = sent;
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+    private void start() {
+        new RTKThread().start();
+        new PluginThread().start();
     }
 
     /**
@@ -178,14 +74,6 @@ public class PingListener extends Thread {
      */
     public void shutdown() {
         this.running.set(false);
-        try {
-            pluginSender.join(1000);
-            pluginReceiver.join(1000);
-            rtkSender.join(1000);
-            rtkReceiver.join(1000);
-        } catch (InterruptedException e) {
-            handleException(e, "Could not shutdown the PingListener!");
-        }
     }
 
     /**
@@ -230,6 +118,69 @@ public class PingListener extends Thread {
         System.err
                 .println("[SpaceBukkit] Please contact the forums (http://forums.xereo.net/) or IRC (#SpaceBukkit on irc.esper.net)");
         lostPlugin = true;
+    }
+
+    private class RTKThread extends Thread {
+        @Override
+        public void run() {
+            try {
+                rtkSocket.setSoTimeout(REQUEST_BUFFER);
+            } catch (SocketException e) {
+                handleException(e, "Error setting the So Timeout!");
+            }
+            while (running.get()) {
+                byte[] buffer = new byte[512];
+                try {
+                    DatagramPacket packet = new DatagramPacket(buffer,
+                            buffer.length, InetAddress.getLocalHost(), 2013);
+                    rtkSocket.receive(packet);
+                    rtkSocket.send(packet);
+                } catch (SocketTimeoutException e) {
+                    onRTKNotFound();
+                } catch (IOException e) {
+                    handleException(e,
+                            "Error receiving and sending the RTK packet!");
+                }
+
+            }
+        }
+    }
+
+    private class PluginThread extends Thread {
+        private boolean first = true;
+
+        @Override
+        public void run() {
+            if (first) {
+                try {
+                    pluginSocket.setSoTimeout(PLUGIN_BUFFER + REQUEST_BUFFER);
+                } catch (SocketException e) {
+                    handleException(e, "Error setting the So Timeout!");
+                }
+                first = false;
+            } else {
+                try {
+                    pluginSocket.setSoTimeout(REQUEST_BUFFER);
+                } catch (SocketException e) {
+                    handleException(e, "Error setting the So Timeout!");
+                }
+            }
+            while (running.get()) {
+                byte[] buffer = new byte[512];
+                try {
+                    DatagramPacket packet = new DatagramPacket(buffer,
+                            buffer.length, InetAddress.getLocalHost(), 2014);
+                    pluginSocket.receive(packet);
+                    pluginSocket.send(packet);
+                } catch (SocketTimeoutException e) {
+                    onPluginNotFound();
+                } catch (IOException e) {
+                    handleException(e,
+                            "Error receiving and sending the Plugin packet!");
+                }
+
+            }
+        }
     }
 
 }
