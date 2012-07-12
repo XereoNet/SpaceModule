@@ -327,12 +327,8 @@ public class SpaceModule extends Module {
         }
         loadConfiguration();
         
-        try {
-            pingListener = new PingListener();
-            pingListener.startup();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        pingListener = new PingListener();
+        pingListener.startup();
         
         if (recommended || development) {
             String jenkinsURL = "http://dev.drdanick.com/jenkins"; //TODO: this needs to go into the config
@@ -436,6 +432,14 @@ public class SpaceModule extends Module {
         Utilities.downloadFile(url, artifact, "Updating SpaceBukkit");
         if (!firstTime && wasRunning)
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
+    }
+    
+    /**
+     * Gets the PingListener
+     * @return Ping Listener
+     */
+    public PingListener getPingListener() {
+        return pingListener;
     }
     
     /**

@@ -134,4 +134,40 @@ public class Utilities {
             stream.writeChar(string.charAt(i));
         }
     }
+
+    /**
+     * Converts a long to a byte[] array
+     * @param l Long to convert to an array
+     * @return The long in array form
+     */
+    public static byte[] longToBytes(long l) {
+        byte[] bytes = new byte[8];
+        bytes[0] = (byte) ((l >> 56) & 0xff);
+        bytes[1] = (byte) ((l >> 48) & 0xff);
+        bytes[2] = (byte) ((l >> 40) & 0xff);
+        bytes[3] = (byte) ((l >> 32) & 0xff);
+        bytes[4] = (byte) ((l >> 24) & 0xff);
+        bytes[5] = (byte) ((l >> 16) & 0xff);
+        bytes[6] = (byte) ((l >> 8) & 0xff);
+        bytes[7] = (byte) (l & 0xff);
+        return bytes;
+    }
+    
+    /**
+     * Converts a byte[] to a long
+     * @param b Bytes to convert to a long
+     * @return The byte[] in long form
+     */
+    public static long bytesToLong(byte[] b) {
+        long l = 0L;
+        l = b[0];
+        l = (l << 8) | b[1];
+        l = (l << 8) | b[2];
+        l = (l << 8) | b[3];
+        l = (l << 8) | b[4];
+        l = (l << 8) | b[5];
+        l = (l << 8) | b[6];
+        l = (l << 8) | b[7];
+        return l;
+    }
 }
