@@ -14,8 +14,10 @@
  */
 package me.neatmonster.spacemodule;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -75,6 +78,9 @@ public class SpaceModule extends Module {
     public boolean              development     = false;
     public boolean              recommended     = false;
     public String               artifactPath    = null;
+    public String               salt            = null;
+    public int                  port            = 0;
+    public int                  rPort           = 0;
     
     public int spaceBukkitPort;
     public int spaceRTKPort;
@@ -87,6 +93,8 @@ public class SpaceModule extends Module {
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
     private PingListener pingListener;
+   
+    private boolean firstRun = false;
 
 
     static {
@@ -270,6 +278,14 @@ public class SpaceModule extends Module {
      * Loads the configuration
      */
     private void loadConfiguration() {
+        if (!(CONFIGURATION.exists())) {
+            firstRun = true;
+            try {
+                CONFIGURATION.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         final YamlConfiguration configuration = YamlConfiguration.loadConfiguration(CONFIGURATION);
         configuration.addDefault("SpaceModule.type", "Bukkit");
         configuration.addDefault("SpaceModule.recommended", true);
@@ -282,7 +298,13 @@ public class SpaceModule extends Module {
                 "#                !!!ATTENTION!!!                #\n" +
                 "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #\n" +
                 "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #\n");
-
+        salt = configuration.getString("General.salt", "<default>");
+        if (salt.equals("<default>")) {
+            salt = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
+            configuration.set("General.salt", salt);
+        }
+        port = configuration.getInt("SpaceBukkit.port", 2011);
+        rPort = configuration.getInt("SpaceRTK.port", 2012);
         type = configuration.getString("SpaceModule.type", "Bukkit");
         configuration.set("SpaceModule.type", type = "Bukkit");
         recommended = configuration.getBoolean("SpaceModule.recommended", true);
@@ -380,6 +402,14 @@ public class SpaceModule extends Module {
             handlerThread.setDaemon(true);
             handlerThread.start();
         }
+        
+        if (firstRun) {
+            try {
+                printConnectionInfo();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         Console.footer();
 
@@ -455,6 +485,19 @@ public class SpaceModule extends Module {
             e.printStackTrace();
         }
         return false;
+    }
+    
+    private void printConnectionInfo() throws IOException {
+        URL whatismyip = new URL("http://automation.whatismyip.com/n09230945.asp");
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                        whatismyip.openStream()));
+
+        String ip = in.readLine();
+        System.out.println("Welcome to SpaceBukkit! Your connection information is: ");
+        System.out.println("Salt: " + salt);
+        System.out.println("External IP: " + ip);
+        System.out.println("SpaceBukkit port: " + port);
+        System.out.println("SpaceRTK port: " + rPort);
     }
 
     /**
