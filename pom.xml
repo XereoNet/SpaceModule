@@ -100,6 +100,20 @@
             <version>7.5.5</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.thoughtworks.xstream</groupId>
+            <artifactId>xstream</artifactId>
+            <version>1.4.2</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -139,6 +153,21 @@
                             <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>
                             <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
                         </manifest>
+                        <manifestSections>
+                            <manifestSection>
+                                <name>me/neatmonster/spacemodule/</name>
+                                <manifestEntries>
+                                    <Specification-Title>${project.name}</Specification-Title>
+                                    <Specification-Version>${project.version}</Specification-Version>
+                                    <Specification-Vendor>XereoNet</Specification-Vendor>
+
+                                    <Implementation-Title>${project.groupId}.${project.artifactId}</Implementation-Title>
+                                    <Implementation-Version>build ${BUILD_NUMBER}</Implementation-Version>
+                                    <Implementation-Vendor>XereoNet</Implementation-Vendor>
+                                    <Build>HELLO</Build>
+                                </manifestEntries>
+                            </manifestSection>
+                        </manifestSections>
                     </archive>
                 </configuration>
             </plugin>
@@ -164,6 +193,13 @@
                             <artifact>com.drdanick.rtoolkit:remotetoolkit</artifact>
                             <includes>
                                 <include>com/drdanick/rtoolkit/**</include>
+                            </includes>
+                        </filter>
+
+                        <filter>
+                            <artifact>com.thoughtworks.xstream:xstream</artifact>
+                            <includes>
+                                <include>**</include>
                             </includes>
                         </filter>
                     </filters>

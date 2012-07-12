@@ -19,14 +19,21 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+import me.neatmonster.spacemodule.management.ArtifactManager;
 import me.neatmonster.spacemodule.management.ImprovedClassLoader;
-import me.neatmonster.spacemodule.management.VersionsManager;
 import me.neatmonster.spacemodule.utilities.Console;
 import me.neatmonster.spacemodule.utilities.Utilities;
 
+import me.neatmonster.spacemodule.utilities.XMLListConverter;
+import me.neatmonster.spacemodule.utilities.XMLMapConverter;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.drdanick.McRKit.ToolkitAction;
@@ -57,13 +64,12 @@ public class SpaceModule extends Module {
 
     private static SpaceModule instance;
 
-    /**
-     * Gets an instance of the SpaceModule
-     * @return SpaceModule instance
-     */
-    public static SpaceModule getInstance() {
-        return instance;
-    }
+    private static XStream xstream;
+
+    private static String version;
+
+    private static String title;
+
 
     public String               type            = null;
     public boolean              development     = false;
@@ -73,14 +79,64 @@ public class SpaceModule extends Module {
     public int spaceBukkitPort;
     public int spaceRTKPort;
 
-    public Timer                timer           = new Timer();
-    public Object               spaceRTK        = null;
-    public ImprovedClassLoader  classLoader     = null;
-    public VersionsManager      versionsManager = null;
+    public Timer                         timer            = new Timer();
+    public Object                        spaceRTK         = null;
+    public ImprovedClassLoader           classLoader      = null;
+    public Map<String, ArtifactManager>  artifactManagers = null;
 
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
     private PingListener pingListener;
+
+
+    static {
+        xstream = new XStream(new DomDriver());
+        SpaceModule.xstream.registerConverter(new XMLMapConverter(SpaceModule.xstream.getMapper()));
+        SpaceModule.xstream.registerConverter(new XMLListConverter(SpaceModule.xstream.getMapper()));
+        SpaceModule.xstream.alias("jenkins", List.class);
+        SpaceModule.xstream.alias("job", List.class);
+        SpaceModule.xstream.alias("build", Map.class);
+        SpaceModule.xstream.alias("action", Map.class);
+        SpaceModule.xstream.alias("lastBuiltRevision", Map.class);
+        SpaceModule.xstream.alias("artifact", Map.class);
+        SpaceModule.xstream.alias("number", String.class);
+        SpaceModule.xstream.alias("name", String.class);
+
+        version = SpaceModule.class.getPackage().getSpecificationVersion();
+        title = SpaceModule.class.getPackage().getSpecificationTitle();
+    }
+
+    /**
+     * Get the XStream instance associated with this SpaceModule instance.
+     * @return The XStream instance associated with this SpaceModule instance.
+     */
+    public static XStream getXStream() {
+        return xstream;
+    }
+
+    /**
+     * Get the specification version of this SpaceModule instance.
+     * @return the specification version of this spacemodule instance.
+     */
+    public static String getSpecificationVersion() {
+        return version;
+    }
+
+    /**
+     * Get the specification title of this SpaceModule instance.
+     * @return the specification title of this SpaceModule instance.
+     */
+    public static String getSpecificationTitle() {
+        return title;
+    }
+
+    /**
+     * Gets an instance of the SpaceModule
+     * @return SpaceModule instance
+     */
+    public static SpaceModule getInstance() {
+        return instance;
+    }
 
     /**
      * Creates a new SpaceModule
@@ -93,32 +149,33 @@ public class SpaceModule extends Module {
         instance = this;
         edt = new EventDispatcher();
         eventHandler = new EventHandler();
+        artifactManagers = new HashMap<String, ArtifactManager>();
         System.out.print("Done.\nLoading SpaceModule...");
     }
 
     /**
      * Starts the Module
-     * @param versionsManager Version manager
+     * @param artifactManager Version manager
      * @param firstTime If this is the first creation
      */
-    public void execute(final VersionsManager versionsManager, final boolean firstTime) {
+    public void execute(ArtifactManager artifactManager, boolean firstTime) {
         File artifact = null;
         if (type.equals("Bukkit")) {
-            artifact = new File("plugins", versionsManager.ARTIFACT_NAME);
+            artifact = new File("plugins", artifactManager.getArtifactFileName());
         }
         if (artifact == null) {
             return;
         }
         if (!artifact.exists()) {
-            update(versionsManager, artifact, firstTime);
+            update(artifactManager, artifact, firstTime);
         }
         else {
             try {
                 final String md5 = Utilities.getMD5(artifact);
-                final int buildNumber = versionsManager.match(md5);
-                if (recommended && buildNumber != versionsManager.RECOMMENDED || development
-                        && buildNumber != versionsManager.DEVELOPMENT)
-                    update(versionsManager, artifact, firstTime);
+                final int buildNumber = artifactManager.match(md5);
+                if (recommended && buildNumber != artifactManager.getRecommendedBuild() || development
+                        && buildNumber != artifactManager.getDevelopmentBuild())
+                    update(artifactManager, artifact, firstTime);
             } catch (final Exception e) {
                 e.printStackTrace();
             }
@@ -133,17 +190,20 @@ public class SpaceModule extends Module {
      */
     public String getModuleVersion() {
         try {
-            if (versionsManager == null) {
-                versionsManager = new VersionsManager("Space" + type);
-                versionsManager.setup();
+            if (!artifactManagers.containsKey("Space" + type)) {
+                ArtifactManager aMngr = new ArtifactManager("Space" + type, version, "http://dev.drdanick.com/jenkins"); //TODO: URL base needs to go into the config
+                artifactManagers.put("Space" + type, aMngr);
+                aMngr.setup(true, 0, 100);
+                Console.newLine();
             }
             File artifact;
+            ArtifactManager artifactManager = artifactManagers.get("Space" + type);
             if (development || recommended)
-                artifact = new File("plugins" + File.separator + versionsManager.ARTIFACT_NAME);
+                artifact = new File("plugins" + File.separator + artifactManager.getArtifactFileName());
             else
                 artifact = new File(artifactPath);
-            if (versionsManager.match(Utilities.getMD5(artifact)) != 0)
-                return "#" + versionsManager.match(Utilities.getMD5(artifact));
+            if (artifactManager.match(Utilities.getMD5(artifact)) != 0)
+                return "#" + artifactManager.match(Utilities.getMD5(artifact));
             else
                 return "#?";
         } catch (final Exception e) {
@@ -158,12 +218,13 @@ public class SpaceModule extends Module {
      */
     public String getVersion() {
         try {
-            final VersionsManager spaceModuleVersionsManager = new VersionsManager("SpaceModule");
-            spaceModuleVersionsManager.setup();
+            final ArtifactManager spaceModuleArtifactManager = new ArtifactManager("SpaceModule", version, "http://dev.drdanick.com/jenkins");
+            spaceModuleArtifactManager.setup(true, 0, 100);
+            Console.newLine();
             final File artifact = new File("toolkit" + File.separator + "modules",
-                    spaceModuleVersionsManager.ARTIFACT_NAME);
-            if (spaceModuleVersionsManager.match(Utilities.getMD5(artifact)) != 0)
-                return "#" + spaceModuleVersionsManager.match(Utilities.getMD5(artifact));
+                    spaceModuleArtifactManager.getArtifactFileName());
+            if (spaceModuleArtifactManager.match(Utilities.getMD5(artifact)) != 0)
+                return "#" + spaceModuleArtifactManager.match(Utilities.getMD5(artifact));
             else
                 return "#?";
         } catch (final Exception e) {
@@ -274,19 +335,31 @@ public class SpaceModule extends Module {
         }
         
         if (recommended || development) {
-            versionsManager = new VersionsManager("Space" + type);
-            versionsManager.setup();
-            execute(versionsManager, true);
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    Console.header("SpaceModule v0.1");
-                    versionsManager.setup();
-                    execute(versionsManager, false);
-                    Console.footer();
-                }
-            }, 21600000L, 21600000L);
-            final File artifact = new File("plugins" + File.separator + versionsManager.ARTIFACT_NAME);
+            String jenkinsURL = "http://dev.drdanick.com/jenkins"; //TODO: this needs to go into the config
+            artifactManagers.put("Space" + type, new ArtifactManager("Space" + type, version, jenkinsURL));
+            artifactManagers.put("SpaceBukkit", new ArtifactManager("SpaceBukkit", version, jenkinsURL)); //TODO: 'SpaceBukkit' should not be hardcoded here.
+            double progressDiv = 100D / artifactManagers.size();
+            int minProgress = 0;
+            for(ArtifactManager m : artifactManagers.values()) {
+                m.setup(true, minProgress, (int)(minProgress + progressDiv));
+                minProgress += progressDiv;
+            }
+            Console.progress("Checking for updates", 100); //XXX: shouldn't call this here
+            Console.newLine();
+            for(final ArtifactManager m : artifactManagers.values()) {
+                execute(m, true);
+                timer.scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        Console.header("SpaceModule v0.1");
+                        m.setup(true, 0, 100);
+                        Console.newLine();
+                        execute(m, false);
+                        Console.footer();
+                    }
+                }, 21600000L, 21600000L);
+            }
+            final File artifact = new File("plugins" + File.separator + artifactManagers.get("Space" + type).getArtifactFileName()); //TODO: Get rid of this
             artifactPath = artifact.getPath();
             load(artifact);
         } else {
@@ -313,6 +386,7 @@ public class SpaceModule extends Module {
         }
 
         Console.footer();
+
     }
 
     /**
@@ -332,11 +406,11 @@ public class SpaceModule extends Module {
 
     /**
      * Updates the SpaceRTK
-     * @param versionsManager VersionManager
+     * @param artifactManager VersionManager
      * @param artifact Artifact to update to
      * @param firstTime If this is the first run
      */
-    private void update(final VersionsManager versionsManager, final File artifact, final boolean firstTime) {
+    private void update(ArtifactManager artifactManager, File artifact, boolean firstTime) {
         boolean wasRunning = false;
         if (!firstTime)
             try {
@@ -350,11 +424,11 @@ public class SpaceModule extends Module {
             }
         String url;
         if (recommended)
-            url = "http://dev.drdanick.com/jenkins/job/Space" + type + "/Recommended/artifact/target/"
-                    + versionsManager.ARTIFACT_NAME;
+            url = "http://dev.drdanick.com/jenkins/job/Space" + type + "/"+ artifactManager.getRecommendedBuild() +"/artifact/target/"
+                    + artifactManager.getArtifactFileName();
         else
-            url = "http://dev.drdanick.com/jenkins/job/Space" + type + "/lastStableBuild/artifact/target/"
-                    + versionsManager.ARTIFACT_NAME;
+            url = "http://dev.drdanick.com/jenkins/job/Space" + type + "/"+ artifactManager.getDevelopmentBuild() +"/artifact/target/"
+                    + artifactManager.getArtifactFileName();
         if (spaceRTK != null)
             unload();
         if (artifact.exists())
