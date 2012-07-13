@@ -32,7 +32,7 @@ public class ArtifactManager {
         this.version = version;
         this.jenkinsURLBase = jenkinsURLBase;
         buildAPIString = "/api/xml?tree=jobs[builds[number,artifacts[fileName],actions[levelValue]]]&wrapper=jenkins&xpath=//job/build[starts-with(artifact/fileName/text(),'"+name.toLowerCase()+"-"+version+"')]&exclude=//job/build/action[not(node())]|//job/build[not(artifact)]";
-        recommendedAPIString = buildAPIString + "|//job/build[not(action/levelValue=1)]";
+        recommendedAPIString = buildAPIString + "|//job/build[not(action/levelValue=4)]";
     }
 
     /**
