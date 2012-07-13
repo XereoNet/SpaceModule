@@ -28,7 +28,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class PingListener {
     public static final int PLUGIN_BUFFER = 20000; // Twenty seconds
-    public static final int REQUEST_BUFFER = 10000; // Ten seconds
+    public static final int REQUEST_BUFFER = 60000; // Sixty seconds
+    public static final int SLEEP_TIME = 30000; // Thirty seconds
 
     public DatagramSocket rtkSocket;
     public DatagramSocket pluginSocket;
@@ -147,6 +148,11 @@ public class PingListener {
                     DatagramPacket packet = new DatagramPacket(buffer,
                             buffer.length, localHost, 2013);
                     rtkSocket.receive(packet);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e) {
+                        handleException(e, "Error sleeping in the run() loop!");
+                    }
                     rtkSocket.send(packet);
                 } catch (SocketTimeoutException e) {
                     onRTKNotFound();
@@ -193,6 +199,11 @@ public class PingListener {
                     DatagramPacket packet = new DatagramPacket(buffer,
                             buffer.length, localHost, 2014);
                     pluginSocket.receive(packet);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e) {
+                        handleException(e, "Error sleeping in the run() loop!");
+                    }
                     pluginSocket.send(packet);
                 } catch (SocketTimeoutException e) {
                     onPluginNotFound();
