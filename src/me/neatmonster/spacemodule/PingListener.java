@@ -20,6 +20,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -27,7 +28,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class PingListener {
     public static final int PLUGIN_THRESHOLD = 20000; // Twenty seconds
-    public static final int REQUEST_THRESHOLD = 10000; // Ten seconds
+    public static final int REQUEST_THRESHOLD = 60000; // Sixty seconds
+    public static final int SLEEP_TIME = 30000; // Thirty seconds
 
     public DatagramSocket rtkSocket;
     public DatagramSocket pluginSocket;
@@ -37,10 +39,17 @@ public class PingListener {
 
     private AtomicBoolean running = new AtomicBoolean(false);
 
+    private InetAddress localHost;
+
     /**
      * Creates a new PingListener
      */
     public PingListener() {
+        try {
+            this.localHost = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            handleException(e, "Unable to get the Local Host!");
+        }
         this.lostRTK = false;
         this.lostPlugin = false;
         try {
@@ -78,7 +87,7 @@ public class PingListener {
 
     /**
      * Called when an exception is thrown
-     * 
+     *
      * @param e
      *            Exception thrown
      */
@@ -121,6 +130,11 @@ public class PingListener {
     }
 
     private class RTKThread extends Thread {
+
+        public RTKThread() {
+            super("Ping Listener RTK Thread");
+        }
+
         @Override
         public void run() {
             try {
@@ -132,11 +146,21 @@ public class PingListener {
                 byte[] buffer = new byte[512];
                 try {
                     DatagramPacket packet = new DatagramPacket(buffer,
-                            buffer.length, InetAddress.getLocalHost(), 2013);
+                            buffer.length, localHost, 2013);
                     rtkSocket.receive(packet);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e) {
+                        handleException(e, "Error sleeping in the run() loop!");
+                    }
                     rtkSocket.send(packet);
                 } catch (SocketTimeoutException e) {
                     onRTKNotFound();
+                    try {
+                        this.join(1000);
+                    } catch (InterruptedException e1) {
+                        handleException(e1, "Unable to stop the RTK PingListener!");
+                    }
                 } catch (IOException e) {
                     handleException(e,
                             "Error receiving and sending the RTK packet!");
@@ -148,6 +172,10 @@ public class PingListener {
 
     private class PluginThread extends Thread {
         private boolean first = true;
+
+        public PluginThread() {
+            super("Ping Listener Plugin Thread");
+        }
 
         @Override
         public void run() {
@@ -169,11 +197,21 @@ public class PingListener {
                 byte[] buffer = new byte[512];
                 try {
                     DatagramPacket packet = new DatagramPacket(buffer,
-                            buffer.length, InetAddress.getLocalHost(), 2014);
+                            buffer.length, localHost, 2014);
                     pluginSocket.receive(packet);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e) {
+                        handleException(e, "Error sleeping in the run() loop!");
+                    }
                     pluginSocket.send(packet);
                 } catch (SocketTimeoutException e) {
                     onPluginNotFound();
+                    try {
+                        this.join(1000);
+                    } catch (InterruptedException e1) {
+                        handleException(e1, "Unable to stop the Plugin PingListener!");
+                    }
                 } catch (IOException e) {
                     handleException(e,
                             "Error receiving and sending the Plugin packet!");
