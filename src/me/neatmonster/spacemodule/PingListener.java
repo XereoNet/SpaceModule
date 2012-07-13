@@ -26,8 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Pings the RTK and Plugin to ensure they are functioning correctly
  */
 public class PingListener {
-    public static final int PLUGIN_BUFFER = 20000; // Twenty seconds
-    public static final int REQUEST_BUFFER = 10000; // Ten seconds
+    public static final int PLUGIN_THRESHOLD = 20000; // Twenty seconds
+    public static final int REQUEST_THRESHOLD = 10000; // Ten seconds
 
     public DatagramSocket rtkSocket;
     public DatagramSocket pluginSocket;
@@ -124,7 +124,7 @@ public class PingListener {
         @Override
         public void run() {
             try {
-                rtkSocket.setSoTimeout(REQUEST_BUFFER);
+                rtkSocket.setSoTimeout(REQUEST_THRESHOLD);
             } catch (SocketException e) {
                 handleException(e, "Error setting the So Timeout!");
             }
@@ -153,14 +153,14 @@ public class PingListener {
         public void run() {
             if (first) {
                 try {
-                    pluginSocket.setSoTimeout(PLUGIN_BUFFER + REQUEST_BUFFER);
+                    pluginSocket.setSoTimeout(PLUGIN_THRESHOLD + REQUEST_THRESHOLD);
                 } catch (SocketException e) {
                     handleException(e, "Error setting the So Timeout!");
                 }
                 first = false;
             } else {
                 try {
-                    pluginSocket.setSoTimeout(REQUEST_BUFFER);
+                    pluginSocket.setSoTimeout(REQUEST_THRESHOLD);
                 } catch (SocketException e) {
                     handleException(e, "Error setting the So Timeout!");
                 }
