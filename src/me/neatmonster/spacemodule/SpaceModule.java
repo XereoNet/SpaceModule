@@ -336,7 +336,7 @@ public class SpaceModule extends Module {
 
     @Override
     public void onEnable() {
-        Console.header("SpaceModule v0.1");
+        Console.header("SpaceModule v"+getSpecificationVersion());
         if (!MAIN_DIRECTORY.exists()) {
             MAIN_DIRECTORY.mkdir();
         }
