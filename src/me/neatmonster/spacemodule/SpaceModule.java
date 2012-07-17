@@ -293,6 +293,8 @@ public class SpaceModule extends Module {
         configuration.addDefault("SpaceModule.artifact", "<automatic>");
         configuration.addDefault("SpaceBukkit.port", 2011);
         configuration.addDefault("SpaceRTK.port", 2012);
+        configuration.addDefault("General.backupDirectory", "Backups");
+        configuration.addDefault("General.backupLogs", true);
         configuration.options().copyDefaults(true);
         configuration.options().header(
                 "#                !!!ATTENTION!!!                #\n" +
