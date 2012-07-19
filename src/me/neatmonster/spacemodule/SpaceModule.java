@@ -81,9 +81,8 @@ public class SpaceModule extends Module {
     public String               salt            = null;
     public int                  port            = 0;
     public int                  rPort           = 0;
-    
-    public int spaceBukkitPort;
-    public int spaceRTKPort;
+    public int                  pingPort        = 0;
+    public int                  rPingPort       = 0;
 
     public Timer                         timer            = new Timer();
     public Object                        spaceRTK         = null;
@@ -292,7 +291,9 @@ public class SpaceModule extends Module {
         config.addDefault("SpaceModule.development", false);
         config.addDefault("SpaceModule.artifact", "<automatic>");
         config.addDefault("SpaceBukkit.port", 2011);
+        config.addDefault("SpaceBukkit.pingPort", 2014);
         config.addDefault("SpaceRTK.port", 2012);
+        config.addDefault("SpaceRTK.pingPort", 2013);
         config.addDefault("General.backupDirectory", "Backups");
         config.addDefault("General.backupLogs", true);
         config.options().copyDefaults(true);
@@ -307,14 +308,14 @@ public class SpaceModule extends Module {
             config.set("General.salt", salt);
         }
         port = config.getInt("SpaceBukkit.port", 2011);
+        pingPort = config.getInt("SpaceBukkit.pingPort", 2014);
         rPort = config.getInt("SpaceRTK.port", 2012);
+        rPingPort = config.getInt("SpaceRTK.pingPort", 2013);
         type = config.getString("SpaceModule.type", "Bukkit");
         config.set("SpaceModule.type", type = "Bukkit");
         recommended = config.getBoolean("SpaceModule.recommended", true);
         development = config.getBoolean("SpaceModule.development", false);
         artifactPath = config.getString("SpaceModule.artifact", "<automatic>");
-        spaceBukkitPort = config.getInt("SpaceBukkit.port", 2011);
-        spaceRTKPort = config.getInt("SpaceRTK.port", 2012);
         if (recommended && development) {
             config.set("SpaceModule.recommended", recommended = false);
         }
