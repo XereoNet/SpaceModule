@@ -53,9 +53,9 @@ public class PingListener {
         this.lostRTK = false;
         this.lostPlugin = false;
         try {
-            this.rtkSocket = new DatagramSocket(2013,
+            this.rtkSocket = new DatagramSocket(SpaceModule.getInstance().pingPort,
                     InetAddress.getLocalHost());
-            this.pluginSocket = new DatagramSocket(2014,
+            this.pluginSocket = new DatagramSocket(SpaceModule.getInstance().rPingPort,
                     InetAddress.getLocalHost());
         } catch (IOException e) {
             handleException(e, "Unable to start the PingListener!");
@@ -146,7 +146,7 @@ public class PingListener {
                 byte[] buffer = new byte[512];
                 try {
                     DatagramPacket packet = new DatagramPacket(buffer,
-                            buffer.length, localHost, 2013);
+                            buffer.length, localHost, SpaceModule.getInstance().rPingPort);
                     rtkSocket.receive(packet);
                     try {
                         Thread.sleep(SLEEP_TIME);
@@ -197,7 +197,7 @@ public class PingListener {
                 byte[] buffer = new byte[512];
                 try {
                     DatagramPacket packet = new DatagramPacket(buffer,
-                            buffer.length, localHost, 2014);
+                            buffer.length, localHost, SpaceModule.getInstance().pingPort);
                     pluginSocket.receive(packet);
                     try {
                         Thread.sleep(SLEEP_TIME);

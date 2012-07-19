@@ -81,9 +81,8 @@ public class SpaceModule extends Module {
     public String               salt            = null;
     public int                  port            = 0;
     public int                  rPort           = 0;
-    
-    public int spaceBukkitPort;
-    public int spaceRTKPort;
+    public int                  pingPort        = 0;
+    public int                  rPingPort       = 0;
 
     public Timer                         timer            = new Timer();
     public Object                        spaceRTK         = null;
@@ -286,37 +285,42 @@ public class SpaceModule extends Module {
                 e.printStackTrace();
             }
         }
-        final YamlConfiguration configuration = YamlConfiguration.loadConfiguration(CONFIGURATION);
-        configuration.addDefault("SpaceModule.type", "Bukkit");
-        configuration.addDefault("SpaceModule.recommended", true);
-        configuration.addDefault("SpaceModule.development", false);
-        configuration.addDefault("SpaceModule.artifact", "<automatic>");
-        configuration.addDefault("SpaceBukkit.port", 2011);
-        configuration.addDefault("SpaceRTK.port", 2012);
-        configuration.options().copyDefaults(true);
-        configuration.options().header(
+        final YamlConfiguration config = YamlConfiguration.loadConfiguration(CONFIGURATION);
+        config.addDefault("SpaceModule.type", "Bukkit");
+        config.addDefault("SpaceModule.recommended", true);
+        config.addDefault("SpaceModule.development", false);
+        config.addDefault("SpaceModule.artifact", "<automatic>");
+        config.addDefault("SpaceBukkit.port", 2011);
+        config.addDefault("SpaceBukkit.pingPort", 2014);
+        config.addDefault("SpaceRTK.port", 2012);
+        config.addDefault("SpaceRTK.pingPort", 2013);
+        config.addDefault("General.backupDirectory", "Backups");
+        config.addDefault("General.backupLogs", true);
+        config.options().copyDefaults(true);
+        config.options().header(
                 "#                !!!ATTENTION!!!                #\n" +
                 "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #\n" +
                 "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #\n");
-        salt = configuration.getString("General.salt", "<default>");
+        migrateConfig(config);
+        salt = config.getString("General.salt", "<default>");
         if (salt.equals("<default>")) {
             salt = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
-            configuration.set("General.salt", salt);
+            config.set("General.salt", salt);
         }
-        port = configuration.getInt("SpaceBukkit.port", 2011);
-        rPort = configuration.getInt("SpaceRTK.port", 2012);
-        type = configuration.getString("SpaceModule.type", "Bukkit");
-        configuration.set("SpaceModule.type", type = "Bukkit");
-        recommended = configuration.getBoolean("SpaceModule.recommended", true);
-        development = configuration.getBoolean("SpaceModule.development", false);
-        artifactPath = configuration.getString("SpaceModule.artifact", "<automatic>");
-        spaceBukkitPort = configuration.getInt("SpaceBukkit.port", 2011);
-        spaceRTKPort = configuration.getInt("SpaceRTK.port", 2012);
+        port = config.getInt("SpaceBukkit.port", 2011);
+        pingPort = config.getInt("SpaceBukkit.pingPort", 2014);
+        rPort = config.getInt("SpaceRTK.port", 2012);
+        rPingPort = config.getInt("SpaceRTK.pingPort", 2013);
+        type = config.getString("SpaceModule.type", "Bukkit");
+        config.set("SpaceModule.type", type = "Bukkit");
+        recommended = config.getBoolean("SpaceModule.recommended", true);
+        development = config.getBoolean("SpaceModule.development", false);
+        artifactPath = config.getString("SpaceModule.artifact", "<automatic>");
         if (recommended && development) {
-            configuration.set("SpaceModule.recommended", recommended = false);
+            config.set("SpaceModule.recommended", recommended = false);
         }
         try {
-            configuration.save(CONFIGURATION);
+            config.save(CONFIGURATION);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -470,6 +474,37 @@ public class SpaceModule extends Module {
      */
     public PingListener getPingListener() {
         return pingListener;
+    }
+    
+    private void migrateConfig(YamlConfiguration config) {
+	if (config.getString("SpaceModule.type") == null) {
+	    return;
+	}
+	String type = config.getString("SpaceModule.Type");
+	config.set("SpaceModule.Type", null);
+	boolean recommended = config.getBoolean("SpaceModule.Recommended");
+	config.set("SpaceModule.Recommended", null);
+	boolean development = config.getBoolean("SpaceModule.Development");
+	config.set("SpaceModule.Development", null);
+	String artifact = config.getString("SpaceModule.Artifact");
+	config.set("SpaceModule.Artifact", null);
+	int port = config.getInt("SpaceBukkit.Port");
+	config.set("SpaceBukkit.Port", null);
+	int rPort = config.getInt("SpaceRTK.Port");
+	config.set("SpaceRTK.Port", null);
+	String salt = config.getString("General.Salt");
+	config.set("General.Salt", null);	
+	String worldContainer = config.getString("General.WorldContainer");
+	config.set("General.WorldContainer", null);
+	
+	config.set("SpaceModule.type", type);
+	config.set("SpaceModule.recommended", recommended);
+	config.set("SpaceModule.development", development);
+	config.set("SpaceModule.artifact", artifact);
+	config.set("SpaceBukkit.port", port);
+	config.set("SpaceRTK.port", rPort);
+	config.set("General.salt", salt);
+	config.set("General.worldContainer", worldContainer);
     }
     
     /**
