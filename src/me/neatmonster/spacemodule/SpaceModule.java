@@ -16,6 +16,7 @@ package me.neatmonster.spacemodule;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
@@ -340,6 +341,7 @@ public class SpaceModule extends Module {
 
     @Override
     public void onEnable() {
+	checkPlugins();
         Console.header("SpaceModule v"+getSpecificationVersion());
         if (!MAIN_DIRECTORY.exists()) {
             MAIN_DIRECTORY.mkdir();
@@ -359,7 +361,6 @@ public class SpaceModule extends Module {
         if (recommended || development) {
             String jenkinsURL = "http://dev.drdanick.com/jenkins"; //TODO: this needs to go into the config
             artifactManagers.put("Space" + type, new ArtifactManager("Space" + type, version, jenkinsURL));
-            artifactManagers.put("SpaceBukkit", new ArtifactManager("SpaceBukkit", version, jenkinsURL)); //TODO: 'SpaceBukkit' should not be hardcoded here.
             double progressDiv = 100D / artifactManagers.size();
             int minProgress = 0;
             for(ArtifactManager m : artifactManagers.values()) {
@@ -373,7 +374,7 @@ public class SpaceModule extends Module {
                 timer.scheduleAtFixedRate(new TimerTask() {
                     @Override
                     public void run() {
-                        Console.header("SpaceModule v0.1");
+                        Console.header("SpaceModule v1.2");
                         m.setup(true, 0, 100);
                         Console.newLine();
                         execute(m, false);
@@ -381,15 +382,11 @@ public class SpaceModule extends Module {
                     }
                 }, 21600000L, 21600000L);
             }
-            final File artifact = new File("plugins" + File.separator + artifactManagers.get("Space" + type).getArtifactFileName()); //TODO: Get rid of this
-            artifactPath = artifact.getPath();
-            load(artifact);
-        } else {
-            final File artifact = new File(artifactPath);
-            load(artifact);
-            Console.timedProgress("Starting SpaceBukkit", 0, 100, 500L);
-            Console.newLine();
         }
+        final File artifact = artifactPath.equalsIgnoreCase("<automatic>") ? new File("plugins" + File.separator + "SpaceBukkit.jar") : new File(artifactPath);
+        load(artifact);
+        Console.timedProgress("Starting SpaceBukkit", 0, 100, 500L);
+        Console.newLine();
 
         if(!edt.isRunning()) {
             synchronized (edt) {
@@ -461,9 +458,15 @@ public class SpaceModule extends Module {
                     + artifactManager.getArtifactFileName();
         if (spaceRTK != null)
             unload();
-        if (artifact.exists())
+        if (artifact.exists()) {
             artifact.delete();
+        }
         Utilities.downloadFile(url, artifact, "Updating SpaceBukkit");
+        File to = new File("plugins" + File.separator + "SpaceBukkit.jar");
+        if (to.exists()) {
+            to.delete();
+        }
+        artifact.renameTo(to);
         if (!firstTime && wasRunning)
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
     }
@@ -477,7 +480,7 @@ public class SpaceModule extends Module {
     }
     
     private void migrateConfig(YamlConfiguration config) {
-	if (config.getString("SpaceModule.type") == null) {
+	if (config.getString("SpaceModule.Type") == null) {
 	    return;
 	}
 	String type = config.getString("SpaceModule.Type");
@@ -533,6 +536,27 @@ public class SpaceModule extends Module {
         System.out.println("External IP: " + ip);
         System.out.println("SpaceBukkit port: " + port);
         System.out.println("SpaceRTK port: " + rPort);
+    }
+    
+    private void checkPlugins() {
+	File plugins = new File("plugins");
+	for (File file : plugins.listFiles(new FileFilter() {
+
+	    @Override
+	    public boolean accept(File f) {
+		if (f.isDirectory()) {
+		    return false;
+		}
+		return f.getName().contains("spacebukkit");
+	    }
+	    
+	})) {
+	    File to = new File(plugins, "SpaceBukkit.jar");
+	    if (to.exists()) {
+		to.delete();
+	    }
+	    file.renameTo(to);
+	}
     }
 
     /**
