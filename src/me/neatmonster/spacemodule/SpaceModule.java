@@ -374,7 +374,7 @@ public class SpaceModule extends Module {
                 timer.scheduleAtFixedRate(new TimerTask() {
                     @Override
                     public void run() {
-                        Console.header("SpaceModule v1.2");
+                        Console.header("SpaceModule v"+getSpecificationVersion());
                         m.setup(true, 0, 100);
                         Console.newLine();
                         execute(m, false);
