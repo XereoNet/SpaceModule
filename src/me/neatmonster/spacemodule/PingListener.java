@@ -144,6 +144,7 @@ public class PingListener {
             }
             while (running.get()) {
                 byte[] buffer = new byte[512];
+                buffer[0] = 1;
                 try {
                     DatagramPacket packet = new DatagramPacket(buffer,
                             buffer.length, localHost, SpaceModule.getInstance().rPingPort);
@@ -195,6 +196,7 @@ public class PingListener {
             }
             while (running.get()) {
                 byte[] buffer = new byte[512];
+                buffer[0] = 1;
                 try {
                     DatagramPacket packet = new DatagramPacket(buffer,
                             buffer.length, localHost, SpaceModule.getInstance().pingPort);
