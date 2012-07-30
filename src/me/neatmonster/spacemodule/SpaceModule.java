@@ -16,7 +16,6 @@ package me.neatmonster.spacemodule;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
@@ -93,7 +92,7 @@ public class SpaceModule extends Module {
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
     private PingListener pingListener;
-   
+
     private boolean firstRun = false;
 
 
@@ -300,8 +299,8 @@ public class SpaceModule extends Module {
         config.options().copyDefaults(true);
         config.options().header(
                 "#                !!!ATTENTION!!!                #\n" +
-                "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #\n" +
-                "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #\n");
+                        "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #\n" +
+                        "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #\n");
         migrateConfig(config);
         salt = config.getString("General.salt", "<default>");
         if (salt.equals("<default>")) {
@@ -341,7 +340,6 @@ public class SpaceModule extends Module {
 
     @Override
     public void onEnable() {
-	checkPlugins();
         Console.header("SpaceModule v"+getSpecificationVersion());
         if (!MAIN_DIRECTORY.exists()) {
             MAIN_DIRECTORY.mkdir();
@@ -354,13 +352,14 @@ public class SpaceModule extends Module {
             }
         }
         loadConfiguration();
-        
+
         pingListener = new PingListener();
         pingListener.startup();
-        
+
         if (recommended || development) {
             String jenkinsURL = "http://dev.drdanick.com/jenkins"; //TODO: this needs to go into the config
             artifactManagers.put("Space" + type, new ArtifactManager("Space" + type, version, jenkinsURL));
+            artifactManagers.put("SpaceBukkit", new ArtifactManager("SpaceBukkit", version, jenkinsURL)); //TODO: 'SpaceBukkit' should not be hardcoded here.
             double progressDiv = 100D / artifactManagers.size();
             int minProgress = 0;
             for(ArtifactManager m : artifactManagers.values()) {
@@ -382,11 +381,15 @@ public class SpaceModule extends Module {
                     }
                 }, 21600000L, 21600000L);
             }
+            final File artifact = new File("plugins" + File.separator + artifactManagers.get("Space" + type).getArtifactFileName()); //TODO: Get rid of this
+            artifactPath = artifact.getPath();
+            load(artifact);
+        } else {
+            final File artifact = new File(artifactPath);
+            load(artifact);
+            Console.timedProgress("Starting SpaceBukkit", 0, 100, 500L);
+            Console.newLine();
         }
-        final File artifact = artifactPath.equalsIgnoreCase("<automatic>") ? new File("plugins" + File.separator + "SpaceBukkit.jar") : new File(artifactPath);
-        load(artifact);
-        Console.timedProgress("Starting SpaceBukkit", 0, 100, 500L);
-        Console.newLine();
 
         if(!edt.isRunning()) {
             synchronized (edt) {
@@ -403,14 +406,9 @@ public class SpaceModule extends Module {
             handlerThread.setDaemon(true);
             handlerThread.start();
         }
-        
-        if (firstRun) {
-            try {
-                printConnectionInfo();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+
+        if (firstRun)
+            printConnectionInfo();
 
         Console.footer();
 
@@ -458,19 +456,13 @@ public class SpaceModule extends Module {
                     + artifactManager.getArtifactFileName();
         if (spaceRTK != null)
             unload();
-        if (artifact.exists()) {
+        if (artifact.exists())
             artifact.delete();
-        }
         Utilities.downloadFile(url, artifact, "Updating SpaceBukkit");
-        File to = new File("plugins" + File.separator + "SpaceBukkit.jar");
-        if (to.exists()) {
-            to.delete();
-        }
-        artifact.renameTo(to);
         if (!firstTime && wasRunning)
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
     }
-    
+
     /**
      * Gets the PingListener
      * @return Ping Listener
@@ -478,38 +470,38 @@ public class SpaceModule extends Module {
     public PingListener getPingListener() {
         return pingListener;
     }
-    
+
     private void migrateConfig(YamlConfiguration config) {
-	if (config.getString("SpaceModule.Type") == null) {
-	    return;
-	}
-	String type = config.getString("SpaceModule.Type");
-	config.set("SpaceModule.Type", null);
-	boolean recommended = config.getBoolean("SpaceModule.Recommended");
-	config.set("SpaceModule.Recommended", null);
-	boolean development = config.getBoolean("SpaceModule.Development");
-	config.set("SpaceModule.Development", null);
-	String artifact = config.getString("SpaceModule.Artifact");
-	config.set("SpaceModule.Artifact", null);
-	int port = config.getInt("SpaceBukkit.Port");
-	config.set("SpaceBukkit.Port", null);
-	int rPort = config.getInt("SpaceRTK.Port");
-	config.set("SpaceRTK.Port", null);
-	String salt = config.getString("General.Salt");
-	config.set("General.Salt", null);	
-	String worldContainer = config.getString("General.WorldContainer");
-	config.set("General.WorldContainer", null);
-	
-	config.set("SpaceModule.type", type);
-	config.set("SpaceModule.recommended", recommended);
-	config.set("SpaceModule.development", development);
-	config.set("SpaceModule.artifact", artifact);
-	config.set("SpaceBukkit.port", port);
-	config.set("SpaceRTK.port", rPort);
-	config.set("General.salt", salt);
-	config.set("General.worldContainer", worldContainer);
+        if (config.getString("SpaceModule.type") == null) {
+            return;
+        }
+        String type = config.getString("SpaceModule.Type");
+        config.set("SpaceModule.Type", null);
+        boolean recommended = config.getBoolean("SpaceModule.Recommended");
+        config.set("SpaceModule.Recommended", null);
+        boolean development = config.getBoolean("SpaceModule.Development");
+        config.set("SpaceModule.Development", null);
+        String artifact = config.getString("SpaceModule.Artifact");
+        config.set("SpaceModule.Artifact", null);
+        int port = config.getInt("SpaceBukkit.Port");
+        config.set("SpaceBukkit.Port", null);
+        int rPort = config.getInt("SpaceRTK.Port");
+        config.set("SpaceRTK.Port", null);
+        String salt = config.getString("General.Salt");
+        config.set("General.Salt", null);
+        String worldContainer = config.getString("General.WorldContainer");
+        config.set("General.WorldContainer", null);
+
+        config.set("SpaceModule.type", type);
+        config.set("SpaceModule.recommended", recommended);
+        config.set("SpaceModule.development", development);
+        config.set("SpaceModule.artifact", artifact);
+        config.set("SpaceBukkit.port", port);
+        config.set("SpaceRTK.port", rPort);
+        config.set("General.salt", salt);
+        config.set("General.worldContainer", worldContainer);
     }
-    
+
     /**
      * Checks if the server is running
      * @return If the server is running
@@ -524,39 +516,30 @@ public class SpaceModule extends Module {
         }
         return false;
     }
-    
-    private void printConnectionInfo() throws IOException {
-        URL whatismyip = new URL("http://automation.whatismyip.com/n09230945.asp");
-        BufferedReader in = new BufferedReader(new InputStreamReader(
-                        whatismyip.openStream()));
 
-        String ip = in.readLine();
-        System.out.println("Welcome to SpaceBukkit! Your connection information is: ");
-        System.out.println("Salt: " + salt);
-        System.out.println("External IP: " + ip);
-        System.out.println("SpaceBukkit port: " + port);
-        System.out.println("SpaceRTK port: " + rPort);
-    }
-    
-    private void checkPlugins() {
-	File plugins = new File("plugins");
-	for (File file : plugins.listFiles(new FileFilter() {
+    private void printConnectionInfo() {
+        BufferedReader in = null;
 
-	    @Override
-	    public boolean accept(File f) {
-		if (f.isDirectory()) {
-		    return false;
-		}
-		return f.getName().contains("spacebukkit");
-	    }
-	    
-	})) {
-	    File to = new File(plugins, "SpaceBukkit.jar");
-	    if (to.exists()) {
-		to.delete();
-	    }
-	    file.renameTo(to);
-	}
+        try {
+            URL whatismyip = new URL("http://automation.whatismyip.com/n09230945.asp");
+            in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+
+            String ip = in.readLine();
+            System.out.println("Welcome to SpaceBukkit! Your connection information is: ");
+            System.out.println("Salt: " + salt);
+            System.out.println("External IP: " + ip);
+            System.out.println("SpaceBukkit port: " + port);
+            System.out.println("SpaceRTK port: " + rPort);
+        } catch(IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if(in != null)
+                    in.close();
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
