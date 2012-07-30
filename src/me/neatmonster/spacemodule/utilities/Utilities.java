@@ -88,7 +88,7 @@ public class Utilities {
         try {
             if (file.exists() && file.isFile() && file.canRead()) {
                 final MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-                final DigestInputStream inputStream = new DigestInputStream(new FileInputStream(file), messageDigest);
+                final DigestInputStream inputStream = new DigestInputStream(new BufferedInputStream(new FileInputStream(file)), messageDigest);
                 inputStream.on(true);
                 while (inputStream.read() != -1) {}
                 final byte[] bytes = messageDigest.digest();
