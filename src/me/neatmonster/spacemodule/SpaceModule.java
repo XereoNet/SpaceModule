@@ -168,7 +168,7 @@ public class SpaceModule extends Module {
     public void execute(ArtifactManager artifactManager, boolean firstTime) {
         File artifact = null;
         if (type.equals("Bukkit")) {
-            artifact = new File("plugins", artifactManager.getArtifactFileName());
+            artifact = new File("plugins", "space" + type.toLowerCase() + ".jar");
         }
         if (artifact == null) {
             return;
@@ -357,9 +357,14 @@ public class SpaceModule extends Module {
         pingListener.startup();
 
         if (recommended || development) {
+            File pluginDir = new File("plugins");
+            for(File f : pluginDir.listFiles()) {
+                if(f.getName().matches("space"+type.toLowerCase()+"-[0-9]*\\.[0-9]*-[A-Za-z]*\\.jar"))
+                    f.delete();
+            }
+
             String jenkinsURL = "http://dev.drdanick.com/jenkins"; //TODO: this needs to go into the config
             artifactManagers.put("Space" + type, new ArtifactManager("Space" + type, version, jenkinsURL));
-            artifactManagers.put("SpaceBukkit", new ArtifactManager("SpaceBukkit", version, jenkinsURL)); //TODO: 'SpaceBukkit' should not be hardcoded here.
             double progressDiv = 100D / artifactManagers.size();
             int minProgress = 0;
             for(ArtifactManager m : artifactManagers.values()) {
@@ -381,7 +386,7 @@ public class SpaceModule extends Module {
                     }
                 }, 21600000L, 21600000L);
             }
-            final File artifact = new File("plugins" + File.separator + artifactManagers.get("Space" + type).getArtifactFileName()); //TODO: Get rid of this
+            File artifact = new File("plugins" + File.separator + "space" + type.toLowerCase()+".jar");
             artifactPath = artifact.getPath();
             load(artifact);
         } else {
@@ -433,6 +438,7 @@ public class SpaceModule extends Module {
      * Updates the SpaceRTK
      * @param artifactManager VersionManager
      * @param artifact Artifact to update to
+     *
      * @param firstTime If this is the first run
      */
     private void update(ArtifactManager artifactManager, File artifact, boolean firstTime) {
@@ -458,7 +464,7 @@ public class SpaceModule extends Module {
             unload();
         if (artifact.exists())
             artifact.delete();
-        Utilities.downloadFile(url, artifact, "Updating SpaceBukkit");
+        Utilities.downloadFile(url, new File(artifact.getParentFile(),"space"+type.toLowerCase()+".jar"), "Updating SpaceBukkit");
         if (!firstTime && wasRunning)
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
     }
@@ -472,7 +478,7 @@ public class SpaceModule extends Module {
     }
 
     private void migrateConfig(YamlConfiguration config) {
-        if (config.getString("SpaceModule.type") == null) {
+        if (config.getString("SpaceModule.Type") == null) {
             return;
         }
         String type = config.getString("SpaceModule.Type");
