@@ -79,7 +79,6 @@ public class SpaceModule extends Module {
     public boolean              recommended     = false;
     public String               artifactPath    = null;
     public String               salt            = null;
-    public String               bindIp          = "0.0.0.0";
     public int                  port            = 0;
     public int                  rPort           = 0;
     public int                  pingPort        = 0;
@@ -93,7 +92,6 @@ public class SpaceModule extends Module {
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
     private PingListener pingListener;
-    private NewPingListener newPingListener;
 
     private boolean firstRun = false;
 
@@ -262,7 +260,7 @@ public class SpaceModule extends Module {
      * Loads a file
      * @param jar File to load
      */
-    public void load(final File jar) {
+    private void load(final File jar) {
         try {
             final URL url = new URL("file:" + jar.getAbsolutePath());
             classLoader = new ImprovedClassLoader(new URL[] {url}, getClass().getClassLoader());
@@ -309,7 +307,6 @@ public class SpaceModule extends Module {
             salt = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
             config.set("General.salt", salt);
         }
-        bindIp = config.getString("General.bindIp", "0.0.0.0");
         port = config.getInt("SpaceBukkit.port", 2011);
         pingPort = config.getInt("SpaceBukkit.pingPort", 2014);
         rPort = config.getInt("SpaceRTK.port", 2012);
@@ -358,7 +355,7 @@ public class SpaceModule extends Module {
 
         pingListener = new PingListener();
         pingListener.startup();
-       
+
         if (recommended || development) {
             File pluginDir = new File("plugins");
             for(File f : pluginDir.listFiles()) {
@@ -419,15 +416,13 @@ public class SpaceModule extends Module {
             printConnectionInfo();
 
         Console.footer();
-        
-        newPingListener = new NewPingListener();
-        newPingListener.start();
+
     }
 
     /**
      * Unloads the SpaceRTK
      */
-    public void unload() {
+    private void unload() {
         try {
             final Method onDisable = spaceRTK.getClass().getMethod("onDisable");
             onDisable.invoke(spaceRTK);
@@ -480,14 +475,6 @@ public class SpaceModule extends Module {
      */
     public PingListener getPingListener() {
         return pingListener;
-    }
-    
-    /**
-     * Gets the NewPingListener
-     * @return New Ping Listener
-     */
-    public NewPingListener getNewPingListener() {
-        return newPingListener;
     }
 
     private void migrateConfig(YamlConfiguration config) {
