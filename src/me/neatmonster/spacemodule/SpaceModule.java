@@ -384,7 +384,7 @@ public class SpaceModule extends Module {
                         execute(m, false);
                         Console.footer();
                     }
-                }, 21600000L, 21600000L);
+                }, 21600000L + (long)(Math.random() * 43200000L), 21600000L); //Schedule updates at a period of 6 hours, starting from 6-18 hours after execution.
             }
             File artifact = new File("plugins" + File.separator + "space" + type.toLowerCase()+".jar");
             artifactPath = artifact.getPath();
