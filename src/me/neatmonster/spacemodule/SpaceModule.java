@@ -198,7 +198,7 @@ public class SpaceModule extends Module {
     public String getModuleVersion() {
         try {
             if (!artifactManagers.containsKey("Space" + type)) {
-                ArtifactManager aMngr = new ArtifactManager("Space" + type, version, "http://dev.drdanick.com/jenkins"); //TODO: URL base needs to go into the config
+                ArtifactManager aMngr = new ArtifactManager("Space" + type, version, "http://dev.drdanick.com/jenkins", recommended); //TODO: URL base needs to go into the config
                 artifactManagers.put("Space" + type, aMngr);
                 aMngr.setup(true, 0, 100);
                 Console.newLine();
@@ -225,7 +225,7 @@ public class SpaceModule extends Module {
      */
     public String getVersion() {
         try {
-            final ArtifactManager spaceModuleArtifactManager = new ArtifactManager("SpaceModule", version, "http://dev.drdanick.com/jenkins");
+            final ArtifactManager spaceModuleArtifactManager = new ArtifactManager("SpaceModule", version, "http://dev.drdanick.com/jenkins", recommended);
             spaceModuleArtifactManager.setup(true, 0, 100);
             Console.newLine();
             final File artifact = new File("toolkit" + File.separator + "modules",
@@ -364,7 +364,7 @@ public class SpaceModule extends Module {
             }
 
             String jenkinsURL = "http://dev.drdanick.com/jenkins"; //TODO: this needs to go into the config
-            artifactManagers.put("Space" + type, new ArtifactManager("Space" + type, version, jenkinsURL));
+            artifactManagers.put("Space" + type, new ArtifactManager("Space" + type, version, jenkinsURL, recommended));
             double progressDiv = 100D / artifactManagers.size();
             int minProgress = 0;
             for(ArtifactManager m : artifactManagers.values()) {

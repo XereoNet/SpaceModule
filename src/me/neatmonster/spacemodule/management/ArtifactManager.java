@@ -23,13 +23,15 @@ public class ArtifactManager {
     private String buildAPIString;
     private String recommendedAPIString;
     private String artifactName;
+    private boolean recommended;
 
     private final LinkedHashMap<Integer, String> builds = new LinkedHashMap<Integer, String>();
 
 
-    public ArtifactManager(String name, String version, String jenkinsURLBase) {
+    public ArtifactManager(String name, String version, String jenkinsURLBase, boolean recommended) {
         this.name = name;
         this.version = version;
+        this.recommended = recommended;
         this.jenkinsURLBase = jenkinsURLBase;
         buildAPIString = "/api/xml?tree=jobs[builds[number,artifacts[fileName],actions[levelValue]]]&wrapper=jenkins&xpath=//job/build[starts-with(artifact/fileName/text(),'"+name.toLowerCase()+"-"+version+"')]&exclude=//job/build/action[not(node())]|//job/build[not(artifact)]";
         recommendedAPIString = buildAPIString + "|//job/build[not(action/levelValue=4)]";
@@ -87,7 +89,7 @@ public class ArtifactManager {
 
         //Map build artifacts to hashes taken from jenkins
         double progressDiv = (double)(progressMax - progressMin)/(double)allBuilds.getList("jenkins").size();
-        for(Object o : allBuilds.getList("jenkins")) {
+        for(Object o : (recommended ? recommendedBuilds : allBuilds).getList("jenkins")) {
             ConfigurationFile c = new ConfigurationFile(new Node(o));
             int number = Integer.parseInt(c.getString("number"));
 
