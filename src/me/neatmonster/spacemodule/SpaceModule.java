@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +84,7 @@ public class SpaceModule extends Module {
     public int                  port            = 0;
     public int                  rPort           = 0;
     public int                  pingPort        = 0;
-    public int                  rPingPort       = 0;
+    public InetAddress          bindAddress;
 
     public Timer                         timer            = new Timer();
     public Object                        spaceRTK         = null;
@@ -91,7 +93,6 @@ public class SpaceModule extends Module {
 
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
-    private PingListener pingListener;
 
     private boolean firstRun = false;
 
@@ -299,18 +300,32 @@ public class SpaceModule extends Module {
         config.options().copyDefaults(true);
         config.options().header(
                 "#                !!!ATTENTION!!!                #\n" +
-                        "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #\n" +
-                        "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #\n");
+                "#   IF YOU CHANGE THE SALT, YOU MUST RESTART    #\n" +
+                "#  THE WRAPPER FOR THE CHANGES TO TAKE EFFECT   #\n");
         migrateConfig(config);
         salt = config.getString("General.salt", "<default>");
         if (salt.equals("<default>")) {
             salt = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
             config.set("General.salt", salt);
         }
+
+        String bindAddressString = config.getString("General.bindIp", "0.0.0.0");
+        if(bindAddressString.trim().isEmpty())
+            bindAddressString = "0.0.0.0";
+        try {
+            bindAddress = InetAddress.getByName(bindAddressString);
+        } catch(UnknownHostException e) {
+            try {
+                bindAddress = InetAddress.getLocalHost();
+            } catch(UnknownHostException e2) {}
+            System.err.println("Warning: Could not assign bind address " + bindAddressString + ":");
+            System.err.println(e.getMessage());
+            System.err.println("Will bind to loopback address: " + bindAddress.getHostAddress() + "...");
+        }
+
         port = config.getInt("SpaceBukkit.port", 2011);
         pingPort = config.getInt("SpaceBukkit.pingPort", 2014);
         rPort = config.getInt("SpaceRTK.port", 2012);
-        rPingPort = config.getInt("SpaceRTK.pingPort", 2013);
         type = config.getString("SpaceModule.type", "Bukkit");
         config.set("SpaceModule.type", type = "Bukkit");
         recommended = config.getBoolean("SpaceModule.recommended", true);
@@ -330,7 +345,6 @@ public class SpaceModule extends Module {
     public void onDisable() {
         unload();
         edt.setRunning(false);
-        pingListener.shutdown();
         synchronized (edt) {
             edt.notifyAll();
         }
@@ -352,9 +366,6 @@ public class SpaceModule extends Module {
             }
         }
         loadConfiguration();
-
-        pingListener = new PingListener();
-        pingListener.startup();
 
         if (recommended || development) {
             File pluginDir = new File("plugins");
@@ -469,13 +480,6 @@ public class SpaceModule extends Module {
             Wrapper.getInstance().performAction(ToolkitAction.UNHOLD, null);
     }
 
-    /**
-     * Gets the PingListener
-     * @return Ping Listener
-     */
-    public PingListener getPingListener() {
-        return pingListener;
-    }
 
     private void migrateConfig(YamlConfiguration config) {
         if (config.getString("SpaceModule.Type") == null) {
