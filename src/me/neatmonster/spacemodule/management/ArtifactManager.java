@@ -1,14 +1,19 @@
 package me.neatmonster.spacemodule.management;
 
-import com.drdanick.rtoolkit.util.config.ConfigurationFile;
-import com.drdanick.rtoolkit.util.config.Node;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.LinkedHashMap;
+
 import me.neatmonster.spacemodule.SpaceModule;
 import me.neatmonster.spacemodule.utilities.Console;
 import me.neatmonster.spacemodule.utilities.Utilities;
+
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
+import com.drdanick.rtoolkit.util.config.ConfigurationFile;
+import com.drdanick.rtoolkit.util.config.Node;
 
 /**
  * Manages dependency artifacts.
@@ -58,6 +63,16 @@ public class ArtifactManager {
         updateProgress(printProgress, progress);
         YamlConfiguration database = YamlConfiguration.loadConfiguration(SpaceModule.DATABASE);
 
+        try {
+	    URL url = new URL(jenkinsURLBase);
+	    URLConnection conn = url.openConnection();
+	    conn.setConnectTimeout(2000);
+	    conn.connect();
+	} catch (IOException e) {
+	    System.err.println("[SpaceBukkit] Unable to connect to the update server!");
+	    return;
+	}
+        
         Object artifactAPIResponse = SpaceModule.getXStream().fromXML(Utilities.getContent(jenkinsURLBase + buildAPIString));
         Object recommendedArtifactAPIResponse = SpaceModule.getXStream().fromXML(Utilities.getContent(jenkinsURLBase + recommendedAPIString));
 
