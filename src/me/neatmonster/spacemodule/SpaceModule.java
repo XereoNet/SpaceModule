@@ -30,6 +30,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import com.drdanick.rtoolkit.system.EventDispatchWorker;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import me.neatmonster.spacemodule.management.ArtifactManager;
@@ -47,7 +48,7 @@ import com.drdanick.McRKit.Wrapper;
 import com.drdanick.McRKit.module.Module;
 import com.drdanick.McRKit.module.ModuleLoader;
 import com.drdanick.McRKit.module.ModuleMetadata;
-import com.drdanick.rtoolkit.EventDispatcher;
+import com.drdanick.rtoolkit.system.EventDispatcher;
 import com.drdanick.rtoolkit.event.ToolkitEventHandler;
 
 /**
@@ -93,6 +94,7 @@ public class SpaceModule extends Module {
 
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
+    private EventDispatchWorker toolkitEventWorker;
 
     private boolean firstRun = false;
 
@@ -157,6 +159,11 @@ public class SpaceModule extends Module {
         instance = this;
         edt = new EventDispatcher();
         eventHandler = new EventHandler();
+
+        toolkitEventWorker = new EventDispatchWorker();
+        toolkitEventWorker.setEnabled(true);
+        edt.registerEventHandler(eventHandler, toolkitEventWorker);
+
         artifactManagers = new HashMap<String, ArtifactManager>();
         System.out.print("Done.\nLoading SpaceModule...");
     }
@@ -348,7 +355,7 @@ public class SpaceModule extends Module {
         synchronized (edt) {
             edt.notifyAll();
         }
-        eventHandler.setEnabled(false);
+        toolkitEventWorker.setEnabled(false);
         instance = null;
     }
 
@@ -416,11 +423,8 @@ public class SpaceModule extends Module {
             edtThread.start();
         }
 
-        eventHandler.setEnabled(true);
-        if(!eventHandler.isRunning()) {
-            Thread handlerThread = new Thread(eventHandler, "SpaceModule EventHandler");
-            handlerThread.setDaemon(true);
-            handlerThread.start();
+        if(!toolkitEventWorker.isEnabled()) {
+            toolkitEventWorker.setEnabled(true);
         }
 
         if (firstRun)
@@ -553,15 +557,8 @@ public class SpaceModule extends Module {
     }
 
     /**
-     * Forces the ToolkitEventHandler to function correctly
+     * A terrible hack to illegitimately create a ToolkitEventHandler
      */
     private class EventHandler extends ToolkitEventHandler {
-        /**
-         * Creates a new EventHandler
-         */
-        public EventHandler() {
-            setEnabled(true);
-        }
-
     }
 }
