@@ -31,6 +31,7 @@ import java.util.TimerTask;
 import java.util.UUID;
 
 import com.drdanick.rtoolkit.system.EventDispatchWorker;
+import com.drdanick.rtoolkit.system.SingleWorkerPool;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import me.neatmonster.spacemodule.management.ArtifactManager;
@@ -157,12 +158,10 @@ public class SpaceModule extends Module {
     public SpaceModule(final ModuleMetadata meta, final ModuleLoader moduleLoader, final ClassLoader cLoader) {
         super(meta, moduleLoader, cLoader, ToolkitEvent.ON_TOOLKIT_START, ToolkitEvent.NULL_EVENT);
         instance = this;
-        edt = new EventDispatcher();
+        edt = new EventDispatcher(new SingleWorkerPool());
         eventHandler = new EventHandler();
 
-        toolkitEventWorker = new EventDispatchWorker();
-        toolkitEventWorker.setEnabled(true);
-        edt.registerEventHandler(eventHandler, toolkitEventWorker);
+        edt.registerEventHandler(eventHandler);
 
         artifactManagers = new HashMap<String, ArtifactManager>();
         System.out.print("Done.\nLoading SpaceModule...");
