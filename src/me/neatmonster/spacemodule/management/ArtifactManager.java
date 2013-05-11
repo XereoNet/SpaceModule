@@ -57,64 +57,66 @@ public class ArtifactManager {
         double progress = progressMin;
         updateProgress(printProgress, progress);
         YamlConfiguration database = YamlConfiguration.loadConfiguration(SpaceModule.DATABASE);
+        
+        String s = Utilities.getContent(jenkinsURLBase + buildAPIString);
+        if(s != null) {
+        	Object artifactAPIResponse = SpaceModule.getXStream().fromXML(s);
+            Object recommendedArtifactAPIResponse = SpaceModule.getXStream().fromXML(Utilities.getContent(jenkinsURLBase + recommendedAPIString));
 
-        Object artifactAPIResponse = SpaceModule.getXStream().fromXML(Utilities.getContent(jenkinsURLBase + buildAPIString));
-        Object recommendedArtifactAPIResponse = SpaceModule.getXStream().fromXML(Utilities.getContent(jenkinsURLBase + recommendedAPIString));
+            ConfigurationFile allBuilds = new ConfigurationFile(new Node(artifactAPIResponse));
+            ConfigurationFile recommendedBuilds = new ConfigurationFile(new Node(recommendedArtifactAPIResponse));
 
-        ConfigurationFile allBuilds = new ConfigurationFile(new Node(artifactAPIResponse));
-        ConfigurationFile recommendedBuilds = new ConfigurationFile(new Node(recommendedArtifactAPIResponse));
+            int lastCheckedBuild = database.getInt(name + ".lastChecked", 0);
 
-        int lastCheckedBuild = database.getInt(name + ".lastChecked", 0);
+            database.set(name + ".version", version);
 
-        database.set(name + ".version", version);
-
-        String lastBuild = allBuilds.getString("jenkins[0].number");
-        String lastRecommendedBuild = recommendedBuilds.getString("jenkins[0].number");
-        developmentBuild = Integer.parseInt(lastBuild.trim());
-        try {
-            if(lastRecommendedBuild != null)
-                recommendedBuild = Integer.parseInt(lastRecommendedBuild.trim());
-            else
+            String lastBuild = allBuilds.getString("jenkins[0].number");
+            String lastRecommendedBuild = recommendedBuilds.getString("jenkins[0].number");
+            developmentBuild = Integer.parseInt(lastBuild.trim());
+            try {
+                if(lastRecommendedBuild != null)
+                    recommendedBuild = Integer.parseInt(lastRecommendedBuild.trim());
+                else
+                    recommendedBuild = developmentBuild;
+            } catch(NumberFormatException e) {
                 recommendedBuild = developmentBuild;
-        } catch(NumberFormatException e) {
-            recommendedBuild = developmentBuild;
-        }
-
-        if (lastCheckedBuild == developmentBuild) {//No need to update the artifact name
-                artifactName = database.getString(name+"-"+version+".artifactName");
-        } else {
-            artifactName = (SpaceModule.getInstance().recommended ? recommendedBuilds : allBuilds).getString("jenkins[0].artifact.fileName");
-            database.set(name+".artifactName", artifactName);
-        }
-
-        //Map build artifacts to hashes taken from jenkins
-        double progressDiv = (double)(progressMax - progressMin)/(double)allBuilds.getList("jenkins").size();
-        for(Object o : (recommended ? recommendedBuilds : allBuilds).getList("jenkins")) {
-            ConfigurationFile c = new ConfigurationFile(new Node(o));
-            int number = Integer.parseInt(c.getString("number"));
-
-            final String buildPage = Utilities.getContent(jenkinsURLBase + "/job/" + name + "/"
-                    + number + "/artifact/target/" + artifactName + "/*fingerprint*/");
-
-            if (buildPage != null) {
-                final int beginIndex = buildPage.indexOf("<div class=\"md5sum\">MD5: ") + 25;
-                final String md5 = buildPage.substring(beginIndex, beginIndex + 32);
-                progress += progressDiv;
-                updateProgress(printProgress, progress);
-                builds.put(number, md5);
-                database.set(name + ".build" + number, md5);
             }
+
+            if (lastCheckedBuild == developmentBuild) {//No need to update the artifact name
+                    artifactName = database.getString(name+"-"+version+".artifactName");
+            } else {
+                artifactName = (SpaceModule.getInstance().recommended ? recommendedBuilds : allBuilds).getString("jenkins[0].artifact.fileName");
+                database.set(name+".artifactName", artifactName);
+            }
+
+            //Map build artifacts to hashes taken from jenkins
+            double progressDiv = (double)(progressMax - progressMin)/(double)allBuilds.getList("jenkins").size();
+            for(Object o : (recommended ? recommendedBuilds : allBuilds).getList("jenkins")) {
+                ConfigurationFile c = new ConfigurationFile(new Node(o));
+                int number = Integer.parseInt(c.getString("number"));
+
+                final String buildPage = Utilities.getContent(jenkinsURLBase + "/job/" + name + "/"
+                        + number + "/artifact/target/" + artifactName + "/*fingerprint*/");
+
+                if (buildPage != null) {
+                    final int beginIndex = buildPage.indexOf("<div class=\"md5sum\">MD5: ") + 25;
+                    final String md5 = buildPage.substring(beginIndex, beginIndex + 32);
+                    progress += progressDiv;
+                    updateProgress(printProgress, progress);
+                    builds.put(number, md5);
+                    database.set(name + ".build" + number, md5);
+                }
+            }
+
+            database.set(name + ".LastChecked", developmentBuild);
+            try {
+                database.save(SpaceModule.DATABASE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            database.set(name+".build" + ".lastChecked", developmentBuild);
         }
-
-        database.set(name + ".LastChecked", developmentBuild);
-        try {
-            database.save(SpaceModule.DATABASE);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        database.set(name+".build" + ".lastChecked", developmentBuild);
-
         updateProgress(printProgress, progressMax);
     }
 
