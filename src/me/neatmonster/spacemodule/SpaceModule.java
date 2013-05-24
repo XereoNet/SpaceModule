@@ -160,6 +160,9 @@ public class SpaceModule extends Module {
         instance = this;
         edt = new EventDispatcher(new SingleWorkerPool());
         eventHandler = new EventHandler();
+        
+        toolkitEventWorker = new EventDispatchWorker();
+        toolkitEventWorker.setEnabled(true);
 
         edt.registerEventHandler(eventHandler);
 
