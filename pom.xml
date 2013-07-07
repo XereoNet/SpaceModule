@@ -114,6 +114,13 @@
             <version>1.4.2</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency> <!--REQUIRED BY R11-->
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.2.2</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -198,6 +205,13 @@
 
                         <filter>
                             <artifact>com.thoughtworks.xstream:xstream</artifact>
+                            <includes>
+                                <include>**</include>
+                            </includes>
+                        </filter>
+
+                        <filter>
+                            <artifact>com.google.code.gson:gson</artifact>
                             <includes>
                                 <include>**</include>
                             </includes>

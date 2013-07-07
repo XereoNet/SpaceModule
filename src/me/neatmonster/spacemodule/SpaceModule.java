@@ -30,7 +30,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-import com.drdanick.rtoolkit.system.EventDispatchWorker;
 import com.drdanick.rtoolkit.system.SingleWorkerPool;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -95,7 +94,6 @@ public class SpaceModule extends Module {
 
     private EventDispatcher     edt;
     private ToolkitEventHandler eventHandler;
-    private EventDispatchWorker toolkitEventWorker;
 
     private boolean firstRun = false;
 
@@ -354,7 +352,6 @@ public class SpaceModule extends Module {
         synchronized (edt) {
             edt.notifyAll();
         }
-        toolkitEventWorker.setEnabled(false);
         instance = null;
     }
 
@@ -422,9 +419,6 @@ public class SpaceModule extends Module {
             edtThread.start();
         }
 
-        if(!toolkitEventWorker.isEnabled()) {
-            toolkitEventWorker.setEnabled(true);
-        }
 
         if (firstRun)
             printConnectionInfo();
